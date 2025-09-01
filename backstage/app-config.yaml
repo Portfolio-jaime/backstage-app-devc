@@ -1,0 +1,187 @@
+app:
+  title: Backstage DevOps Course - BA Training
+  baseUrl: http://localhost:3001
+  support:
+    url: https://github.com/jaime-henao/backstage-course
+    items:
+      - title: Course Documentation
+        icon: docs
+        links:
+          - url: http://localhost:3001/docs/default/system/course/
+            title: Course Overview
+      - title: Troubleshooting
+        icon: alert
+        links:
+          - url: http://localhost:3001/docs/default/system/troubleshooting/
+            title: Common Issues
+
+organization:
+  name: British Airways - DevOps Training
+
+backend:
+  # Used for enabling authentication, secret is shared by all backend plugins
+  # See https://backstage.io/docs/auth/service-to-service-auth for
+  # information on the format
+  auth:
+    keys:
+      - secret: ${BACKEND_SECRET}
+  baseUrl: http://localhost:7008
+  listen:
+    port: 7008
+    # Uncomment the following host directive to bind to specific interfaces
+    # host: 127.0.0.1
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+    # Content-Security-Policy directives follow the Helmet format: https://helmetjs.github.io/#reference
+    # Default Helmet Content-Security-Policy values can be removed by setting the key to false
+  cors:
+    origin: http://localhost:3001
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  # Production database configuration with PostgreSQL
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      database: ${POSTGRES_DB}
+      # Disable SSL for local development
+      ssl: false
+  # workingDirectory: /tmp # Use this to configure a working directory for the scaffolder, defaults to the OS temp-dir
+
+integrations:
+  github:
+    - host: github.com
+      # Personal Access Token for GitHub API access
+      # Required scopes: repo, read:org, read:user, user:email
+      token: ${GITHUB_TOKEN}
+    ### GitHub Enterprise Server (if needed for BA internal repos)
+    # - host: github.ba.com
+    #   apiBaseUrl: https://github.ba.com/api/v3
+    #   token: ${GHE_TOKEN}
+
+proxy:
+  ### Example for how to add a proxy endpoint for the frontend.
+  ### A typical reason to do this is to handle HTTPS and CORS for internal services.
+  # endpoints:
+  #   '/test':
+  #     target: 'https://example.com'
+  #     changeOrigin: true
+
+# Reference documentation http://backstage.io/docs/features/techdocs/configuration
+# Note: After experimenting with basic setup, use CI/CD to generate docs
+# and an external cloud storage when deploying TechDocs for production use-case.
+# https://backstage.io/docs/features/techdocs/how-to-guides#how-to-migrate-from-techdocs-basic-to-recommended-deployment-approach
+techdocs:
+  builder: 'local' # Alternatives - 'external'
+  generator:
+    runIn: 'docker' # Alternatives - 'local'
+  publisher:
+    type: 'local' # Alternatives - 'googleGcs' or 'awsS3'. Read documentation for using alternatives.
+
+auth:
+  # see https://backstage.io/docs/auth/ to learn about auth providers
+  environment: development
+  providers:
+    # GitHub OAuth provider for course - ONLY authentication method
+    github:
+      development:
+        clientId: ${AUTH_GITHUB_CLIENT_ID}
+        clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
+        signIn:
+          resolvers:
+            - resolver: emailMatchingUserEntityName
+            - resolver: emailLocalPartMatchingUserEntityName
+
+scaffolder:
+  # see https://backstage.io/docs/features/software-templates/configuration for software template options
+
+catalog:
+  import:
+    entityFilename: catalog-info.yaml
+    pullRequestBranchName: backstage-integration
+  rules:
+    - allow: [Component, System, API, Resource, Location, Template, User, Group, Domain]
+  
+  # GitHub entity providers for automatic discovery
+  providers:
+    github:
+      # Course repositories provider
+      courseProvider:
+        organization: 'jaime-henao'  # Replace with your GitHub username/org
+        catalogPath: '/catalog-info.yaml'
+        filters:
+          branch: 'main'
+          repository: '.*backstage.*'  # Only repos with 'backstage' in name
+        schedule:
+          frequency: { minutes: 30 }
+          timeout: { minutes: 3 }
+          initialDelay: { seconds: 15 }
+      
+      # General repositories provider (disabled by default)
+      # allReposProvider:
+      #   organization: 'your-org'
+      #   catalogPath: '/catalog-info.yaml'
+      #   filters:
+      #     branch: 'main'
+      #     repository: '.*'
+      #   schedule:
+      #     frequency: { hours: 1 }
+      #     timeout: { minutes: 5 }
+    
+    # Microsoft Graph provider (for BA Office 365 integration)
+    # microsoftGraphOrg:
+    #   target: https://graph.microsoft.com/v1.0
+    #   tenantId: ${AZURE_TENANT_ID}
+    #   clientId: ${AZURE_CLIENT_ID}
+    #   clientSecret: ${AZURE_CLIENT_SECRET}
+    #   userFilter: accountEnabled eq true
+    #   groupFilter: securityEnabled eq false
+    #   schedule:
+    #     frequency: { hours: 1 }
+    #     timeout: { minutes: 3 }
+
+  locations:
+    # Course-specific entities
+    - type: file
+      target: ../../examples/entities.yaml
+
+    # Course software templates
+    - type: file
+      target: ../../examples/template/template.yaml
+      rules:
+        - allow: [Template]
+
+    # Course organizational data
+    - type: file
+      target: ../../examples/org.yaml
+      rules:
+        - allow: [User, Group]
+
+    # Course system architecture
+    - type: file
+      target: ../../catalog/entities/systems.yaml
+      rules:
+        - allow: [System, Domain]
+
+    # External example data (for learning)
+    - type: url
+      target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all.yaml
+      rules:
+        - allow: [Component, API, Resource]
+
+    # Backstage community templates
+    - type: url
+      target: https://github.com/backstage/software-templates/blob/main/scaffolder-templates/react-ssr-template/template.yaml
+      rules:
+        - allow: [Template]
+
+kubernetes:
+  # see https://backstage.io/docs/features/kubernetes/configuration for kubernetes configuration options
+
+# see https://backstage.io/docs/permissions/getting-started for more on the permission framework
+permission:
+  # setting this to `false` will disable permissions
+  enabled: true

@@ -1,0 +1,83 @@
+{
+  "name": "Backstage DevOps Course - British Airways",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "backstage-app",
+  "workspaceFolder": "/app",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml",
+        "ms-python.python",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "GitHub.vscode-github-actions",
+        "ms-azuretools.vscode-docker",
+        "formulahendry.auto-rename-tag",
+        "christian-kohler.path-intellisense",
+        "ms-vscode.vscode-eslint"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "typescript.preferences.includePackageJsonAutoImports": "auto",
+        "files.watcherExclude": {
+          "**/node_modules/**": true,
+          "**/.git/**": true,
+          "**/dist/**": true,
+          "**/build/**": true
+        },
+        "search.exclude": {
+          "**/node_modules": true,
+          "**/dist": true,
+          "**/build": true,
+          "**/.yarn": true
+        }
+      }
+    }
+  },
+
+  "forwardPorts": [3001, 7008, 5433, 8083],
+  "portsAttributes": {
+    "3001": {
+      "label": "Backstage Frontend",
+      "onAutoForward": "notify"
+    },
+    "7008": {
+      "label": "Backstage Backend API",
+      "onAutoForward": "notify"
+    },
+    "5433": {
+      "label": "PostgreSQL Database (DevC)"
+    },
+    "8083": {
+      "label": "Additional Services (DevC)"
+    }
+  },
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+      "version": "latest",
+      "helm": "latest",
+      "minikube": "none"
+    }
+  },
+
+  "postCreateCommand": "echo 'Backstage DevContainer initialized successfully!' && echo 'Run .devcontainer/setup-course.sh to configure GitHub integration'",
+  
+  "remoteUser": "node",
+  "containerEnv": {
+    "NODE_ENV": "development",
+    "CHOKIDAR_USEPOLLING": "true"
+  },
+
+  "mounts": [
+    "source=${localWorkspaceFolder}/.env,target=/app/.env,type=bind,consistency=cached"
+  ]
+}

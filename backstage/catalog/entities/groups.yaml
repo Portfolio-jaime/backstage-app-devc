@@ -1,0 +1,25 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: development
+  description: development Team 
+spec:
+  type: team
+  profile:
+    # Intentional no displayName for testing
+    email: jaimehenao8126@outlook.com
+    picture: https://api.dicebear.com/7.x/identicon/svg?seed=Fluffy&backgroundType=solid,gradientLinear&backgroundColor=ffd5dc,b6e3f4
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: poc
+  description: Proof of Concept Team
+spec:
+  type: team
+  profile:
+    email: jaimehenao8126@outlook.com
+    picture: https://api.dicebear.com/7.x/identicon/svg?seed=PixelArt&backgroundType=solid,gradientLinear&backgroundColor=c0aede,d1d4f9
+  children: []

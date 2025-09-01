@@ -1,0 +1,201 @@
+apiVersion: backstage.io/v1alpha1
+kind: Domain
+metadata:
+  name: training
+  title: Training Domain
+  description: Educational and training systems for British Airways DevOps
+spec:
+  owner: user:jaime.henao
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: backstage-course
+  title: Backstage Course System
+  description: Complete Backstage training system with examples and documentation
+  annotations:
+    backstage.io/source-location: url:https://github.com/jaime-henao/backstage-course
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - training
+    - course
+    - backstage
+    - devops
+  links:
+    - url: https://backstage.io/docs/
+      title: Official Documentation
+      icon: docs
+    - url: https://github.com/jaime-henao/backstage-course
+      title: Course Repository
+      icon: github
+spec:
+  owner: user:jaime.henao
+  domain: training
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: backstage-frontend
+  title: Backstage Frontend
+  description: React-based frontend application for the course
+  annotations:
+    backstage.io/kubernetes-id: backstage-app
+    backstage.io/kubernetes-namespace: backstage-course
+  tags:
+    - frontend
+    - react
+    - typescript
+spec:
+  type: website
+  lifecycle: experimental
+  owner: user:jaime.henao
+  system: backstage-course
+  providesApis:
+    - backstage-frontend-api
+  consumesApis:
+    - backstage-backend-api
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: backstage-backend
+  title: Backstage Backend
+  description: Node.js backend API server for the course
+  annotations:
+    backstage.io/kubernetes-id: backstage-app
+    backstage.io/kubernetes-namespace: backstage-course
+  tags:
+    - backend
+    - nodejs
+    - api
+spec:
+  type: service
+  lifecycle: experimental
+  owner: user:jaime.henao
+  system: backstage-course
+  providesApis:
+    - backstage-backend-api
+  dependsOn:
+    - resource:postgres-database
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: python-demo-app
+  title: Python Demo Application
+  description: Example Python Flask application for demonstrating Backstage integration
+  annotations:
+    backstage.io/kubernetes-id: python-app
+    backstage.io/kubernetes-namespace: demo-apps
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - python
+    - flask
+    - demo
+    - api
+spec:
+  type: service
+  lifecycle: experimental
+  owner: user:jaime.henao
+  system: backstage-course
+  providesApis:
+    - python-demo-api
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: backstage-frontend-api
+  title: Backstage Frontend API
+  description: Frontend API endpoints for the Backstage application
+spec:
+  type: openapi
+  lifecycle: experimental
+  owner: user:jaime.henao
+  system: backstage-course
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Backstage Frontend API
+      version: 1.0.0
+    paths:
+      /health:
+        get:
+          summary: Health check endpoint
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: backstage-backend-api
+  title: Backstage Backend API
+  description: Backend API for catalog, auth, and other Backstage services
+  tags:
+    - rest
+    - api
+spec:
+  type: openapi
+  lifecycle: experimental
+  owner: user:jaime.henao
+  system: backstage-course
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Backstage Backend API
+      version: 1.0.0
+    paths:
+      /api/catalog/entities:
+        get:
+          summary: List catalog entities
+      /api/auth/github:
+        get:
+          summary: GitHub authentication
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: python-demo-api
+  title: Python Demo API
+  description: Flask API endpoints for the demo Python application
+  tags:
+    - python
+    - flask
+    - demo
+spec:
+  type: openapi
+  lifecycle: experimental
+  owner: user:jaime.henao
+  system: backstage-course
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Python Demo API
+      version: 1.0.0
+    paths:
+      /api/v1/info:
+        get:
+          summary: Get application information
+      /api/v1/healthz:
+        get:
+          summary: Health check endpoint
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: postgres-database
+  title: PostgreSQL Database
+  description: PostgreSQL database for Backstage data persistence
+  tags:
+    - database
+    - postgresql
+spec:
+  type: database
+  lifecycle: experimental
+  owner: user:jaime.henao
+  system: backstage-course

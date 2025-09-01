@@ -1,0 +1,31 @@
+
+* Docker directo:
+    - docker run --rm -p 3000:3000 -ti -v /Users/jaime.henao/arheanja/Backstage-solutions/backstage-app:/app -w /app node:18-bookworm-slim bash
+
+    - docker run --rm -p 3000:3000 -ti -v /Users/jaime.henao/arheanja/Backstage-solutions/backstage-app:/app -w /app node:20-bullseye bash
+
+* Dockerfile y docker-compose.yml:
+
+    1. Construir la imagen:
+
+     - docker-compose build    
+
+    2. Levantar el contenedor:
+
+     - docker-compose up -d
+
+    3. Entrar al contenedor:
+
+     - docker exec -it backstage-app bash
+    
+    4. eliminar contenedor:
+
+     - docker-compose down
+
+* Backstage dentro del contenedor:
+
+    - npx @backstage/create-app@latest
+
+    - yarn install
+
+    - yarn dev

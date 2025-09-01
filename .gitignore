@@ -1,0 +1,472 @@
+# ====================================
+# Backstage DevOps Course - .gitignore
+# ====================================
+
+# ==================
+# SENSITIVE FILES - NEVER COMMIT!
+# ==================
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.env
+env.local
+
+# Database credentials and configs
+**/database.yml
+**/database.yaml
+**/*database*config*
+
+# SSL/TLS certificates
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# GitHub tokens and OAuth secrets
+github-app-*.yaml
+github-app-*.yml
+*credentials*.yaml
+*credentials*.yml
+
+# Backstage secrets
+app-config.production.yaml
+app-config.*.local.yaml
+
+# ==================
+# NODE.JS
+# ==================
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
+
+# Dependency directories
+jspm_packages/
+
+# Snowpack dependency directory
+web_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variable files
+.env.development.local
+.env.test.local
+.env.production.local
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist-ssr
+*.local
+
+# Vite build output
+dist/
+
+# Rollup build output
+dist/
+
+# Webpack build output
+dist/
+build/
+
+# ==================
+# BACKSTAGE SPECIFIC
+# ==================
+
+# Backstage build outputs
+packages/*/dist/
+packages/*/build/
+**/dist-types/
+**/lib/
+**/dist-dynamic/
+
+# Backstage cache
+.backstage/
+backstage/*/dist/
+backstage/*/lib/
+backstage/packages/*/dist/
+backstage/plugins/*/dist/
+
+# TechDocs build output
+site/
+backstage/site/
+
+# Scaffolder templates output
+scaffold-output/
+
+# Backstage logs
+*.backstage.log
+backstage.log
+
+# ==================
+# DOCKER
+# ==================
+
+# Docker build context
+.docker/
+docker-build/
+
+# Docker volumes and data
+volumes/
+data/
+postgres-data/
+backstage-data/
+
+# Docker environment files
+docker-compose.override.yml
+docker-compose.local.yml
+
+# ==================
+# PYTHON (for python-app-1)
+# ==================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# ==================
+# KUBERNETES
+# ==================
+
+# Helm charts dependencies
+charts/*/charts/
+**/charts/*.tgz
+
+# Kubernetes secrets
+*secret*.yaml
+*secret*.yml
+*-secret.yaml
+*-secret.yml
+
+# ==================
+# IDE AND EDITORS
+# ==================
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+*.vsix
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Vim
+[._]*.s[a-v][a-z]
+!*.svg  # comment out if you don't need vector files
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+Session.vim
+Temporary Items
+.netrwhist
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ==================
+# OPERATING SYSTEM
+# ==================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==================
+# LOGS AND TEMP FILES
+# ==================
+
+# Log files
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary directories
+tmp/
+temp/
+.tmp/
+.temp/
+
+# ==================
+# BACKUP AND ARCHIVES
+# ==================
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+*.swp
+*.swo
+*~
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Database dumps
+*.sql
+*.db
+*.sqlite
+*.sqlite3
+backup-*.sql
+dump-*.sql
+
+# ==================
+# COURSE SPECIFIC
+# ==================
+
+# Course temporary files
+course-temp/
+lab-output/
+student-work/
+
+# Generated documentation
+docs/generated/
+docs/build/
+
+# Course artifacts that shouldn't be versioned
+certificates/
+keys/
+tokens/
+
+# ==================
+# MONITORING AND METRICS
+# ==================
+
+# Prometheus data
+prometheus-data/
+grafana-data/
+
+# Application metrics
+metrics/
+telemetry/
+
+# ==================
+# CI/CD
+# ==================
+
+# GitHub Actions artifacts
+.github/workflows/artifacts/
+
+# Jenkins
+.jenkins/
+
+# GitLab CI
+.gitlab-ci-local/
+
+# ==================
+# SECURITY SCANNING
+# ==================
+
+# Vulnerability scan results
+vulnerability-report.json
+security-scan.json
+*.sarif
+
+# ==================
+# PERFORMANCE
+# ==================
+
+# Performance profiling
+*.prof
+*.pprof
+*.trace
+
+# ==================
+# END OF .gitignore
+# ==================
