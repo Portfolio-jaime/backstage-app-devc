@@ -5,7 +5,9 @@
 ### Database Issues
 
 #### Issue: Entities disappear after restart
+
 **Symptoms:**
+
 - Registered repositories/entities are gone after `docker-compose down`
 - Empty catalog after container restart
 - "No entities found" message
@@ -13,6 +15,7 @@
 **Root Cause:** Using SQLite in-memory database
 
 **Solution:**
+
 ```bash
 # 1. Check current database configuration
 grep -A 10 "database:" backstage/app-config.yaml
@@ -28,18 +31,22 @@ docker exec -it backstage-postgres psql -U backstage -d backstage -c "SELECT COU
 ```
 
 **Prevention:**
+
 - Always use persistent database (PostgreSQL/MySQL) for production
 - Use named Docker volumes for data persistence
 - Regular database backups
 
 #### Issue: Database connection errors
+
 **Symptoms:**
+
 ```
-Error: connect ECONNREFUSED 127.0.0.1:5432
+Error: connect ECONNREFUSED 127.0.0.1:5433
 Error: password authentication failed for user "backstage"
 ```
 
 **Solution:**
+
 ```bash
 # 1. Verify PostgreSQL container is healthy
 docker-compose ps postgres
@@ -60,12 +67,15 @@ docker-compose up backstage-app -d
 ### Authentication Issues
 
 #### Issue: GitHub OAuth not working
+
 **Symptoms:**
+
 - "Sign in with GitHub" button missing
 - OAuth redirect errors
 - "Unauthorized" after GitHub login
 
 **Debug Steps:**
+
 ```bash
 # 1. Check GitHub OAuth app configuration
 curl -H "Authorization: token YOUR_GITHUB_TOKEN" \
@@ -78,15 +88,16 @@ docker exec backstage-app env | grep AUTH_GITHUB
 docker logs backstage-app | grep -i "auth\|oauth\|github"
 
 # 4. Verify OAuth app URLs in GitHub settings
-# - Homepage URL: http://localhost:3000
-# - Authorization callback URL: http://localhost:7007/api/auth/github/handler/frame
+# - Homepage URL: http://localhost:3001
+# - Authorization callback URL: http://localhost:7008/api/auth/github/handler/frame
 ```
 
 **Common Solutions:**
+
 ```yaml
 # app-config.yaml - verify auth configuration
 auth:
-  environment: development  # Important for localhost
+  environment: development # Important for localhost
   providers:
     github:
       development:
@@ -98,12 +109,15 @@ auth:
 ```
 
 #### Issue: Session expired errors
+
 **Symptoms:**
+
 - Frequent logout prompts
 - "Session expired" messages
 - API calls returning 401
 
 **Solution:**
+
 ```bash
 # 1. Check backend secret is properly set
 docker exec backstage-app env | grep BACKEND_SECRET
@@ -118,12 +132,15 @@ docker-compose restart backstage-app
 ### Plugin Integration Issues
 
 #### Issue: GitHub repositories not appearing
+
 **Symptoms:**
+
 - Empty catalog despite GitHub integration
 - "No components found" message
 - GitHub API rate limit errors
 
 **Debug Steps:**
+
 ```bash
 # 1. Verify GitHub token permissions
 curl -H "Authorization: token YOUR_TOKEN" \
@@ -135,24 +152,25 @@ curl -H "Authorization: token YOUR_TOKEN" \
   https://api.github.com/rate_limit
 
 # 3. Test entity discovery
-curl http://localhost:7007/api/catalog/entities | jq
+curl http://localhost:7008/api/catalog/entities | jq
 
 # 4. Force refresh locations
-curl -X POST http://localhost:7007/api/catalog/locations/123/refresh
+curl -X POST http://localhost:7008/api/catalog/locations/123/refresh
 ```
 
 **Solutions:**
+
 ```yaml
 # app-config.yaml - Add entity providers
 catalog:
   providers:
     github:
       providerId:
-        organization: 'your-org'
-        catalogPath: '/catalog-info.yaml'
+        organization: "your-org"
+        catalogPath: "/catalog-info.yaml"
         filters:
-          branch: 'main'
-          repository: '.*'
+          branch: "main"
+          repository: ".*"
         schedule:
           frequency: { minutes: 30 }
           timeout: { minutes: 3 }
@@ -161,12 +179,15 @@ catalog:
 ### Performance Issues
 
 #### Issue: Slow catalog loading
+
 **Symptoms:**
+
 - Long page load times
 - Timeout errors
 - High CPU/memory usage
 
 **Debug Commands:**
+
 ```bash
 # 1. Check container resource usage
 docker stats
@@ -181,10 +202,11 @@ SET log_min_duration_statement = 100;
 SELECT kind, COUNT(*) FROM entities GROUP BY kind;
 
 # 4. Monitor API response times
-curl -w "@curl-format.txt" -o /dev/null -s http://localhost:7007/api/catalog/entities
+curl -w "@curl-format.txt" -o /dev/null -s http://localhost:7008/api/catalog/entities
 ```
 
 **Optimization:**
+
 ```yaml
 # app-config.yaml - Database tuning
 backend:
@@ -206,16 +228,19 @@ backend:
 ### Docker & Container Issues
 
 #### Issue: Port already in use
+
 **Symptoms:**
+
 ```
-Error starting userland proxy: listen tcp4 0.0.0.0:3000: bind: address already in use
+Error starting userland proxy: listen tcp4 0.0.0.0:3001: bind: address already in use
 ```
 
 **Solution:**
+
 ```bash
 # 1. Find process using the port
-lsof -i :3000
-netstat -tulpn | grep :3000
+lsof -i :3001
+netstat -tulpn | grep :3001
 
 # 2. Kill conflicting process
 kill -9 PID
@@ -227,12 +252,15 @@ ports:
 ```
 
 #### Issue: Container build failures
+
 **Symptoms:**
+
 - Build errors during `docker-compose up`
 - Node.js version conflicts
 - Package installation failures
 
 **Debug Steps:**
+
 ```bash
 # 1. Clean Docker environment
 docker-compose down --volumes --remove-orphans
@@ -251,12 +279,15 @@ cd backstage && npm ls
 ### Configuration Issues
 
 #### Issue: Environment variables not loaded
+
 **Symptoms:**
+
 - Configuration errors
 - `${VARIABLE_NAME}` appearing in config
 - "Cannot resolve config" errors
 
 **Debug:**
+
 ```bash
 # 1. Check .env file exists and is readable
 ls -la Docker/.env
@@ -302,12 +333,12 @@ SELECT * FROM locations WHERE id = 'your-location-id';
 SELECT * FROM refresh_state ORDER BY last_discovery_at DESC LIMIT 10;
 
 # Check table sizes
-SELECT 
+SELECT
   schemaname,
   tablename,
   pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size
-FROM pg_tables 
-WHERE schemaname = 'public' 
+FROM pg_tables
+WHERE schemaname = 'public'
 ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
 ```
 
@@ -315,16 +346,16 @@ ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
 
 ```bash
 # Test API endpoints
-curl -H "Accept: application/json" http://localhost:7007/api/catalog/entities
+curl -H "Accept: application/json" http://localhost:7008/api/catalog/entities
 
 # Check API health
-curl http://localhost:7007/healthcheck
+curl http://localhost:7008/healthcheck
 
 # Test authentication
-curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:7007/api/catalog/entities
+curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:7008/api/catalog/entities
 
 # Debug with verbose output
-curl -v -H "Accept: application/json" http://localhost:7007/api/catalog/entities
+curl -v -H "Accept: application/json" http://localhost:7008/api/catalog/entities
 ```
 
 ### Network Debugging
@@ -335,8 +366,8 @@ docker exec backstage-app ping postgres
 docker exec backstage-app nslookup postgres
 
 # Check port accessibility
-docker exec backstage-app nc -zv postgres 5432
-docker exec backstage-app nc -zv localhost 7007
+docker exec backstage-app nc -zv postgres 5433
+docker exec backstage-app nc -zv localhost 7008
 
 # Verify Docker network
 docker network ls
@@ -349,13 +380,13 @@ docker network inspect backstage-app_default
 
 ```bash
 # Backend health
-curl http://localhost:7007/healthcheck
+curl http://localhost:7008/healthcheck
 
-# Database connectivity  
-curl http://localhost:7007/api/catalog/entities?limit=1
+# Database connectivity
+curl http://localhost:7008/api/catalog/entities?limit=1
 
 # Authentication status
-curl http://localhost:7007/api/auth/github/refresh
+curl http://localhost:7008/api/auth/github/refresh
 ```
 
 ### Performance Monitoring
@@ -364,7 +395,7 @@ curl http://localhost:7007/api/auth/github/refresh
 # Monitor response times
 while true; do
   curl -w "%{time_total}s - %{http_code}\n" \
-    -o /dev/null -s http://localhost:7007/api/catalog/entities
+    -o /dev/null -s http://localhost:7008/api/catalog/entities
   sleep 5
 done
 
@@ -378,7 +409,7 @@ docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.Mem
 # Search for specific errors
 docker logs backstage-app 2>&1 | grep -i error
 
-# Count error types  
+# Count error types
 docker logs backstage-app 2>&1 | grep -i error | sort | uniq -c
 
 # Monitor new logs
@@ -397,17 +428,17 @@ read -p "Are you sure? (type 'yes' to continue): " confirm
 if [ "$confirm" = "yes" ]; then
   echo "Stopping all services..."
   docker-compose down --volumes --remove-orphans
-  
+
   echo "Removing all images..."
   docker-compose down --rmi all
-  
+
   echo "Cleaning up Docker system..."
   docker system prune -a -f --volumes
-  
+
   echo "Rebuilding from scratch..."
   docker-compose build --no-cache
   docker-compose up -d
-  
+
   echo "✅ Reset complete. Wait 2-3 minutes for full startup."
 else
   echo "❌ Reset cancelled."

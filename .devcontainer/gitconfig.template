@@ -1,0 +1,8 @@
+# Global Git configuration for Backstage DevContainer
+[user]
+    name = Backstage User
+    email = backstage@example.com
+[core]
+    editor = nano
+[init]
+    defaultBranch = main

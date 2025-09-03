@@ -32,7 +32,7 @@ RUN pip3 install mkdocs-techdocs-core
 RUN npm install -g npm@latest
 
 # Exponemos los puertos necesarios
-EXPOSE 3000 443 80 8080 7007 3001 7008
+EXPOSE 443 80 8080 3001 7008
 
 # Dejamos bash como comando por defecto
 CMD [ "bash" ]

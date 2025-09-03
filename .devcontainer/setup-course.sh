@@ -61,6 +61,20 @@ if [ "$DEVCONTAINER_MODE" = true ]; then
     echo "📋 Setting up DevContainer environment..."
     # Ensure node user owns the app directory
     sudo chown -R node:node /app 2>/dev/null || true
+    # Instala dependencias del proyecto y el módulo de scaffolder backend para integración con GitHub
+    # Esto permite que Backstage pueda crear repositorios y scaffolds usando GitHub desde el backend
+    cd /app/backstage
+    yarn install
+    yarn --cwd packages/backend add @backstage/plugin-scaffolder-backend-module-github
+
+    # Inicializa .gitconfig si no existe en el volumen persistente
+    if [ ! -f /home/node/.gitconfig ]; then
+        echo "📝 Inicializando configuración global de Git (.gitconfig) en el contenedor..."
+        cp /app/.devcontainer/gitconfig.template /home/node/.gitconfig
+        sudo chown node:node /home/node/.gitconfig 2>/dev/null || true
+    else
+        echo "✅ .gitconfig ya existe y es persistente."
+    fi
 fi
 
 echo "✅ Environment setup complete!"

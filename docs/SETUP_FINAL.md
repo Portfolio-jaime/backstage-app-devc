@@ -4,9 +4,9 @@
 
 **✅ FUNCIONANDO CORRECTAMENTE**
 
-- **Frontend**: http://localhost:3000 
-- **Backend API**: http://localhost:7007
-- **Database**: PostgreSQL persistente en puerto 5432
+- **Frontend**: http://localhost:3001
+- **Backend API**: http://localhost:7008
+- **Database**: PostgreSQL persistente en puerto 5433
 - **Integración GitHub**: Configurada con OAuth + Personal Access Token
 
 ---
@@ -19,31 +19,31 @@ graph TB
         USER[Usuario/Estudiante]
         BROWSER[Navegador Web]
     end
-    
+
     subgraph "Docker Environment"
         subgraph "Backstage Container"
-            FRONTEND[Frontend React<br/>:3000]
-            BACKEND[Backend Node.js<br/>:7007]
+            FRONTEND[Frontend React<br/>:3001]
+            BACKEND[Backend Node.js<br/>:7008]
             WEBPACK[Webpack Dev Server]
         end
-        
+
         subgraph "Database Container"
-            POSTGRES[(PostgreSQL<br/>:5432)]
+            POSTGRES[(PostgreSQL<br/>:5433)]
             PGDATA[Persistent Volume<br/>postgres_data]
         end
-        
+
         subgraph "Volumes"
             BACKSTAGE_DATA[backstage_data]
             APP_CODE[Application Code<br/>/app]
         end
     end
-    
+
     subgraph "External Services"
         GITHUB[GitHub API]
         GITHUB_OAUTH[GitHub OAuth]
         DOCKER_HUB[Docker Hub]
     end
-    
+
     USER --> BROWSER
     BROWSER --> FRONTEND
     FRONTEND --> BACKEND
@@ -51,7 +51,7 @@ graph TB
     POSTGRES --> PGDATA
     BACKEND --> GITHUB
     FRONTEND --> GITHUB_OAUTH
-    
+
     BACKEND --> BACKSTAGE_DATA
     FRONTEND --> APP_CODE
     BACKEND --> APP_CODE
@@ -112,6 +112,7 @@ backstage-app/
 ### 🗄️ Base de Datos PostgreSQL
 
 **Configuración de Contenedor:**
+
 ```yaml
 postgres:
   image: postgres:15-alpine
@@ -121,7 +122,7 @@ postgres:
     POSTGRES_USER: backstage
     POSTGRES_PASSWORD: backstage_password
   ports:
-    - "5432:5432"
+    - "5433:5433"
   volumes:
     - postgres_data:/var/lib/postgresql/data
   healthcheck:
@@ -132,6 +133,7 @@ postgres:
 ```
 
 **Configuración en Backstage:**
+
 ```yaml
 backend:
   database:
@@ -142,12 +144,13 @@ backend:
       user: ${POSTGRES_USER}
       password: ${POSTGRES_PASSWORD}
       database: ${POSTGRES_DB}
-      ssl: false  # Para desarrollo local
+      ssl: false # Para desarrollo local
 ```
 
 ### 🔐 Autenticación GitHub
 
 **Variables de Entorno Configuradas:**
+
 ```bash
 # Token para GitHub API (repo, read:org, read:user, user:email)
 GITHUB_TOKEN=ghp_your_github_personal_access_token_here
@@ -161,6 +164,7 @@ BACKEND_SECRET=your_generated_backend_secret_here
 ```
 
 **Configuración en app-config.yaml:**
+
 ```yaml
 auth:
   environment: development
@@ -184,16 +188,17 @@ integrations:
 ### 📦 Catálogo y Proveedores
 
 **Entity Providers Configurados:**
+
 ```yaml
 catalog:
   providers:
     github:
       courseProvider:
-        organization: 'jaime-henao'
-        catalogPath: '/catalog-info.yaml'
+        organization: "jaime-henao"
+        catalogPath: "/catalog-info.yaml"
         filters:
-          branch: 'main'
-          repository: '.*backstage.*'
+          branch: "main"
+          repository: ".*backstage.*"
         schedule:
           frequency: { minutes: 30 }
           timeout: { minutes: 3 }
@@ -201,15 +206,16 @@ catalog:
 ```
 
 **Entidades Incluidas:**
+
 - **Dominios**: `training` (Dominio de entrenamiento)
 - **Sistemas**: `backstage-course` (Sistema principal del curso)
-- **Componentes**: 
+- **Componentes**:
   - `backstage-frontend` (Frontend React)
   - `backstage-backend` (Backend Node.js)
   - `python-demo-app` (App de ejemplo)
 - **APIs**:
   - `backstage-frontend-api`
-  - `backstage-backend-api` 
+  - `backstage-backend-api`
   - `python-demo-api`
 - **Resources**: `postgres-database`
 
@@ -220,15 +226,17 @@ catalog:
 ### 🔄 Proceso de Inicio
 
 1. **PostgreSQL Container**
+
    - Inicia primera con health check
    - Carga datos persistentes desde volumen
-   - Escucha en puerto 5432
+   - Escucha en puerto 5433
 
 2. **Backstage Container**
+
    - Espera a que PostgreSQL esté healthy
    - Carga configuración desde app-config.yaml + .env
-   - Inicia frontend (webpack-dev-server) en puerto 3000
-   - Inicia backend (Node.js API) en puerto 7007
+   - Inicia frontend (webpack-dev-server) en puerto 3001
+   - Inicia backend (Node.js API) en puerto 7008
 
 3. **Plugin Initialization**
    - Catalog backend (gestión de entidades)
@@ -241,18 +249,20 @@ catalog:
 ### 📊 Monitoreo y Logs
 
 **Health Checks Disponibles:**
+
 ```bash
 # Frontend (HTML response)
-curl http://localhost:3000
+curl http://localhost:3001
 
-# Backend API health 
-curl http://localhost:7007/api/app/health
+# Backend API health
+curl http://localhost:7008/api/app/health
 
 # Database connectivity
 docker exec backstage-postgres pg_isready -U backstage
 ```
 
 **Logs Estructurados:**
+
 - JSON format con levels: info, warn, error
 - Plugin-specific logging
 - HTTP request/response tracking
@@ -265,16 +275,19 @@ docker exec backstage-postgres pg_isready -U backstage
 ### 🛡️ Medidas de Seguridad
 
 1. **Secrets Management**
+
    - Variables sensibles en `.env` (no versionado)
    - Backend secret de 256 bits generado automáticamente
    - Tokens GitHub con permisos mínimos necesarios
 
 2. **Database Security**
+
    - Usuario dedicado para Backstage
    - Password strong configurado
    - SSL deshabilitado solo para desarrollo local
 
 3. **Network Security**
+
    - Contenedores en red aislada
    - Puertos expuestos solo los necesarios
    - CORS configurado para localhost
@@ -301,11 +314,13 @@ docker exec backstage-postgres pg_isready -U backstage
 ### 🎯 Optimizaciones Implementadas
 
 1. **Database Performance**
+
    - Connection pooling configurado
    - Índices automáticos de Backstage
    - Persistent volumes para evitar rebuild
 
 2. **Frontend Performance**
+
    - Webpack dev server con hot reload
    - Module federation para plugins
    - Asset optimization
@@ -318,6 +333,7 @@ docker exec backstage-postgres pg_isready -U backstage
 ### 📊 Métricas Observadas
 
 Durante startup típico:
+
 - **Tiempo de inicio**: ~45-60 segundos
 - **Memory usage**: ~512MB para backend, ~256MB para frontend
 - **Database connections**: 5-20 (pool dinámico)
@@ -330,16 +346,19 @@ Durante startup típico:
 ### 📋 Tareas Regulares
 
 1. **Backup Database**
+
    ```bash
    docker exec backstage-postgres pg_dump -U backstage backstage > backup-$(date +%Y%m%d).sql
    ```
 
 2. **Update Dependencies**
+
    ```bash
    docker exec backstage-app bash -c "cd /app/backstage && yarn upgrade"
    ```
 
 3. **Clean Docker Resources**
+
    ```bash
    docker system prune -f
    docker volume prune -f
@@ -378,9 +397,10 @@ docker exec backstage-app bash -c "cd /app/backstage && yarn backstage-cli confi
 **Organización**: British Airways - DevOps Training  
 **Versión**: 1.0  
 **Fecha**: Agosto 2024  
-**Backstage Version**: 1.33+  
+**Backstage Version**: 1.33+
 
 **Objetivos Alcanzados:**
+
 - ✅ Entorno de desarrollo funcional
 - ✅ Persistencia de datos configurada
 - ✅ Integración GitHub completa

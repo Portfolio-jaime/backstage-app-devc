@@ -1,6 +1,7 @@
 # 🚀 Backstage DevContainer - Quick Start Guide
 
 ## Prerequisites
+
 - VS Code with Dev Containers extension
 - Docker Desktop running
 - Git
@@ -8,6 +9,7 @@
 ## 1-Minute Setup
 
 ### Step 1: Open in DevContainer
+
 ```bash
 # Clone repository
 git clone <repository-url>
@@ -20,6 +22,7 @@ code .
 ```
 
 ### Step 2: Setup Environment (Inside DevContainer)
+
 ```bash
 # Run setup script
 .devcontainer/setup-course.sh
@@ -32,12 +35,14 @@ yarn install
 ```
 
 ### Step 3: Start Backstage
+
 ```bash
 # Start development server
 yarn dev
 ```
 
 ### Step 4: Access Application
+
 - **Frontend**: http://localhost:3001
 - **Backend API**: http://localhost:7008
 - **Database**: localhost:5433
@@ -51,7 +56,7 @@ After setup, verify your configuration:
 env | grep -E "(GITHUB|POSTGRES|BACKEND)"
 
 # Test database connection
-pg_isready -h postgres -p 5432 -U backstage
+pg_isready -h postgres -p 5433 -U backstage
 
 # Test GitHub integration
 curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user
@@ -67,6 +72,7 @@ curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user
 ## Troubleshooting
 
 ### DevContainer Won't Start
+
 ```bash
 # Check Docker Desktop is running
 docker ps
@@ -76,6 +82,7 @@ docker ps
 ```
 
 ### Port Conflicts
+
 ```bash
 # Check if ports are in use
 lsof -i :3001
@@ -84,6 +91,7 @@ lsof -i :5433
 ```
 
 ### GitHub Authentication Issues
+
 1. Verify token at https://github.com/settings/tokens
 2. Check OAuth app at https://github.com/settings/applications
 3. Ensure callback URL: `http://localhost:7008/api/auth/github/handler/frame`
@@ -108,4 +116,5 @@ yarn prettier:check
 ```
 
 ---
+
 **Need Help?** See [DEVCONTAINER_SETUP.md](./DEVCONTAINER_SETUP.md) for detailed documentation.

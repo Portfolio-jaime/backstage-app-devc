@@ -10,46 +10,46 @@ graph TB
         VSCode[VS Code IDE]
         Browser[Web Browser]
     end
-    
+
     subgraph "DevContainer Environment"
         subgraph "Port Forwarding"
             P3001[":3001 Frontend"]
             P7008[":7008 Backend API"]
             P5433[":5433 PostgreSQL"]
         end
-        
+
         subgraph "Backstage Application"
             Frontend[React Frontend<br/>Port 3001]
             Backend[Node.js Backend<br/>Port 7008]
             Database[(PostgreSQL<br/>Port 5433)]
         end
-        
+
         subgraph "Integrations"
             GitHub[GitHub OAuth<br/>& API Integration]
             K8s[Kubernetes<br/>Plugin]
             TechDocs[TechDocs<br/>Generator]
         end
     end
-    
+
     subgraph "External Services"
         GitHubAPI[GitHub API]
         GitHubOAuth[GitHub OAuth]
     end
-    
+
     VSCode -.-> P3001
     Browser --> P3001
     Browser --> P7008
-    
+
     P3001 --> Frontend
     P7008 --> Backend
     P5433 --> Database
-    
+
     Frontend <--> Backend
     Backend <--> Database
     Backend <--> GitHub
     GitHub <--> GitHubAPI
     GitHub <--> GitHubOAuth
-    
+
     Backend <--> K8s
     Backend <--> TechDocs
 ```
@@ -81,24 +81,25 @@ backstage-app-devc/
 
 ### Current Aligned Configuration:
 
-| Component | Configuration | Value |
-|-----------|---------------|-------|
-| **Frontend** | `app.baseUrl` | `http://localhost:3001` |
-| **Frontend** | `cors.origin` | `http://localhost:3001` |
-| **Backend** | `backend.baseUrl` | `http://localhost:7008` |
-| **Backend** | `backend.listen.port` | `7008` |
-| **Database** | `POSTGRES_PORT` | `5432` (internal) |
-| **Database** | Port Forward | `5433` (external) |
-| **DevContainer** | `forwardPorts` | `[3001, 7008, 5433, 8083]` |
+| Component        | Configuration         | Value                      |
+| ---------------- | --------------------- | -------------------------- |
+| **Frontend**     | `app.baseUrl`         | `http://localhost:3001`    |
+| **Frontend**     | `cors.origin`         | `http://localhost:3001`    |
+| **Backend**      | `backend.baseUrl`     | `http://localhost:7008`    |
+| **Backend**      | `backend.listen.port` | `7008`                     |
+| **Database**     | `POSTGRES_PORT`       | `5433` (internal)          |
+| **Database**     | Port Forward          | `5433` (external)          |
+| **DevContainer** | `forwardPorts`        | `[3001, 7008, 5433, 8083]` |
 
 ### Environment Variables:
+
 ```bash
 NODE_ENV=development
 AUTH_GITHUB_CLIENT_ID='id auth github'
 AUTH_GITHUB_CLIENT_SECRET='secret auth github'
 GITHUB_TOKEN='token de github'
 POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
+POSTGRES_PORT=5433
 POSTGRES_USER=backstage
 POSTGRES_PASSWORD=backstage_password
 POSTGRES_DB=backstage
@@ -109,12 +110,14 @@ LOG_LEVEL=info
 ## 🚀 Complete Setup Guide
 
 ### Prerequisites
+
 - **VS Code** with Dev Containers extension
 - **Docker Desktop** running (minimum 4GB RAM allocated)
 - **Git** for version control
 - **GitHub Account** with OAuth app configured
 
 ### Step 1: Clone and Open Project
+
 ```bash
 git clone <repository-url>
 cd backstage-app-devc
@@ -122,6 +125,7 @@ code .
 ```
 
 ### Step 2: Configure GitHub OAuth
+
 1. Go to GitHub Settings → Developer settings → OAuth Apps
 2. Create new OAuth App:
    - **Application name**: `Backstage DevOps Course`
@@ -130,6 +134,7 @@ code .
 3. Copy Client ID and Client Secret
 
 ### Step 3: Configure GitHub Personal Access Token
+
 1. Go to GitHub Settings → Developer settings → Personal access tokens
 2. Generate new token with scopes:
    - `repo` - Full repository access
@@ -139,23 +144,26 @@ code .
 3. Copy the token
 
 ### Step 4: Configure Environment Variables
+
 ```bash
 # Copy example environment file
 cp .env.example .env
 
 # Edit .env file with your values:
 AUTH_GITHUB_CLIENT_ID=your_oauth_client_id
-AUTH_GITHUB_CLIENT_SECRET=your_oauth_client_secret  
+AUTH_GITHUB_CLIENT_SECRET=your_oauth_client_secret
 GITHUB_TOKEN=your_personal_access_token
 ```
 
 ### Step 5: Open in DevContainer
+
 ```bash
 # In VS Code Command Palette (Cmd/Ctrl+Shift+P):
 "Dev Containers: Reopen in Container"
 ```
 
 ### Step 6: Setup and Start Application
+
 ```bash
 # Inside DevContainer:
 cd backstage
@@ -166,6 +174,7 @@ yarn start
 ## 🎯 Execution Guide
 
 ### Starting the Application
+
 ```bash
 # Navigate to backstage directory
 cd /app/backstage
@@ -178,6 +187,7 @@ yarn start
 ```
 
 ### Expected Output
+
 ```
 Starting app, backend
 Loaded config from app-config.yaml, app-config.local.yaml
@@ -188,6 +198,7 @@ Loaded config from app-config.yaml, app-config.local.yaml
 ```
 
 ### Access Points
+
 - **Frontend**: http://localhost:3001
 - **Backend API**: http://localhost:7008
 - **PostgreSQL**: localhost:5433
@@ -196,6 +207,7 @@ Loaded config from app-config.yaml, app-config.local.yaml
 ## 🧪 Testing Guide
 
 ### 1. Basic Connectivity Tests
+
 ```bash
 # Test frontend
 curl http://localhost:3001
@@ -211,6 +223,7 @@ curl "http://localhost:7008/api/auth/github/start?env=development"
 ```
 
 ### 2. GitHub Integration Tests
+
 ```bash
 # Test GitHub API connectivity
 curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user
@@ -222,6 +235,7 @@ curl "http://localhost:7008/api/auth/github/start?scope=read%3Auser&origin=http%
 ```
 
 ### 3. Database Connectivity Tests
+
 ```bash
 # Connect to PostgreSQL
 docker exec -it backstage-postgres psql -U backstage -d backstage
@@ -232,6 +246,7 @@ SELECT * FROM entities LIMIT 5;
 ```
 
 ### 4. Frontend Functional Tests
+
 1. Open http://localhost:3001 in browser
 2. Click "Sign In" → Should redirect to GitHub
 3. Complete OAuth flow → Should return to Backstage
@@ -241,15 +256,17 @@ SELECT * FROM entities LIMIT 5;
 ## 🔧 Configuration Guide
 
 ### DevContainer Configuration
+
 File: `.devcontainer/devcontainer.json`
+
 ```json
 {
   "name": "Backstage DevOps Course - British Airways",
   "forwardPorts": [3001, 7008, 5433, 8083],
   "portsAttributes": {
-    "3001": {"label": "Backstage Frontend"},
-    "7008": {"label": "Backstage Backend API"},
-    "5433": {"label": "PostgreSQL Database"}
+    "3001": { "label": "Backstage Frontend" },
+    "7008": { "label": "Backstage Backend API" },
+    "5433": { "label": "PostgreSQL Database" }
   },
   "containerEnv": {
     "NODE_ENV": "development"
@@ -258,7 +275,9 @@ File: `.devcontainer/devcontainer.json`
 ```
 
 ### Backstage Main Configuration
+
 File: `backstage/app-config.yaml`
+
 ```yaml
 app:
   baseUrl: http://localhost:3001
@@ -279,6 +298,7 @@ auth:
 ```
 
 ### Database Configuration
+
 ```yaml
 database:
   client: pg
@@ -295,9 +315,11 @@ database:
 ### Common Issues and Solutions
 
 #### 1. Port Connection Refused
+
 **Problem**: `curl: (7) Failed to connect to localhost port XXXX: Connection refused`
 
 **Solution**:
+
 ```bash
 # Check if services are running
 ps aux | grep node
@@ -308,9 +330,11 @@ cd /app/backstage && yarn start
 ```
 
 #### 2. Auth Provider Not Found
+
 **Problem**: `Unknown auth provider 'github'`
 
 **Solutions**:
+
 ```bash
 # Verify environment variables
 echo $NODE_ENV  # Should be 'development'
@@ -325,18 +349,22 @@ yarn start
 ```
 
 #### 3. DevContainer Port Forwarding
+
 **Problem**: Cannot access from browser
 
 **Solutions**:
+
 1. Check VS Code **PORTS** tab
 2. Manually add ports: 3001, 7008, 5433
 3. Set ports as "Public" if needed
 4. Restart DevContainer: `Cmd/Ctrl+Shift+P` → "Dev Containers: Rebuild Container"
 
 #### 4. Database Connection Issues
+
 **Problem**: Database connection errors
 
 **Solutions**:
+
 ```bash
 # Check PostgreSQL container
 docker ps | grep postgres
@@ -349,9 +377,11 @@ docker-compose restart postgres
 ```
 
 #### 5. GitHub OAuth Issues
+
 **Problem**: OAuth flow fails
 
 **Solutions**:
+
 1. Verify OAuth app settings in GitHub:
    - Homepage URL: `http://localhost:3001`
    - Callback URL: `http://localhost:7008/api/auth/github/handler/frame`
@@ -359,6 +389,7 @@ docker-compose restart postgres
 3. Verify environment variables
 
 ### Debug Commands
+
 ```bash
 # View all container logs
 docker-compose logs -f
@@ -375,6 +406,7 @@ curl "http://localhost:7008/api/auth/github/start?env=development"  # Auth
 ## 📋 Quick Reference
 
 ### Essential Commands
+
 ```bash
 # Start application
 cd /app/backstage && yarn start
@@ -393,14 +425,16 @@ docker exec -it backstage-postgres psql -U backstage -d backstage
 ```
 
 ### Key URLs
+
 ```
 Frontend:     http://localhost:3001
-Backend:      http://localhost:7008  
+Backend:      http://localhost:7008
 Database:     localhost:5433
 GitHub Auth:  http://localhost:7008/api/auth/github/start?env=development
 ```
 
 ### Environment Files
+
 ```
 Main config:     .env
 Backstage main:  backstage/app-config.yaml
@@ -411,6 +445,7 @@ DevContainer:    .devcontainer/devcontainer.json
 ## 🎓 Course Features
 
 ### Available Plugins
+
 - **Catalog**: Service and component discovery
 - **Scaffolder**: Software template system
 - **TechDocs**: Documentation site generator
@@ -419,6 +454,7 @@ DevContainer:    .devcontainer/devcontainer.json
 - **Search**: Full-text search across entities
 
 ### Sample Entities
+
 - **Systems**: Architectural systems
 - **Components**: Microservices and applications
 - **APIs**: Service interfaces
@@ -426,6 +462,7 @@ DevContainer:    .devcontainer/devcontainer.json
 - **Users/Groups**: Team organization
 
 ### Templates Available
+
 - **React SSR Template**: Full-stack React application
 - **Node.js Service**: Backend service template
 - **Python Service**: Python application template

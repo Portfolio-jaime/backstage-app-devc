@@ -8,7 +8,7 @@
 - [x] Docker Compose 2.0+ disponible
 - [x] GitHub Personal Access Token configurado
 - [x] GitHub OAuth App configurada
-- [x] Puertos 3000, 7007, 5432 disponibles
+- [x] Puertos 3001, 7008, 5433 disponibles
 
 ### 🔥 Inicio Inmediato
 
@@ -26,18 +26,18 @@ docker-compose logs -f backstage-app
 docker exec backstage-app bash -c "cd /app/backstage && yarn start" &
 
 # 5. Verificar funcionamiento
-curl http://localhost:3000  # Frontend
-curl http://localhost:7007/api/catalog/entities  # Backend API
+curl http://localhost:3001  # Frontend
+curl http://localhost:7008/api/catalog/entities  # Backend API
 ```
 
 ### 🌐 URLs de Acceso
 
 | Servicio | URL | Estado |
 |----------|-----|--------|
-| **Frontend UI** | http://localhost:3000 | ✅ Funcionando |
-| **Backend API** | http://localhost:7007 | ✅ Funcionando |
-| **PostgreSQL** | localhost:5432 | ✅ Funcionando |
-| **Documentación** | http://localhost:3000/docs | ✅ Disponible |
+| **Frontend UI** | http://localhost:3001 | ✅ Funcionando |
+| **Backend API** | http://localhost:7008 | ✅ Funcionando |
+| **PostgreSQL** | localhost:5433 | ✅ Funcionando |
+| **Documentación** | http://localhost:3001/docs | ✅ Disponible |
 
 ---
 
@@ -47,10 +47,10 @@ curl http://localhost:7007/api/catalog/entities  # Backend API
 
 ```bash
 # Acceder a la UI
-open http://localhost:3000
+open http://localhost:3001
 
 # O via API
-curl http://localhost:7007/api/catalog/entities | jq
+curl http://localhost:7008/api/catalog/entities | jq
 ```
 
 **Entidades Precargadas:**
@@ -63,7 +63,7 @@ curl http://localhost:7007/api/catalog/entities | jq
 
 ### 2️⃣ Autenticación GitHub
 
-1. **Ir a**: http://localhost:3000
+1. **Ir a**: http://localhost:3001
 2. **Click**: "Sign in with GitHub"
 3. **Autorizar**: OAuth App si es primera vez
 4. **Explorar**: Catálogo con tu identidad GitHub
@@ -78,7 +78,7 @@ curl http://localhost:7007/api/catalog/entities | jq
 
 **Via API:**
 ```bash
-curl -X POST http://localhost:7007/api/catalog/locations \
+curl -X POST http://localhost:7008/api/catalog/locations \
   -H "Content-Type: application/json" \
   -d '{
     "type": "url",
@@ -112,7 +112,7 @@ docker logs -f backstage-app | grep -i error
 docker logs -f backstage-postgres
 
 # Health checks
-curl -s http://localhost:7007/api/catalog/entities | jq '.length'
+curl -s http://localhost:7008/api/catalog/entities | jq '.length'
 docker exec backstage-postgres pg_isready -U backstage
 ```
 
@@ -153,7 +153,7 @@ docker-compose up -d
 
 **1. Puerto 3000 ocupado**
 ```bash
-lsof -i :3000
+lsof -i :3001
 # Matar proceso o cambiar puerto en docker-compose.yml
 ```
 
@@ -183,8 +183,8 @@ docker-compose up -d
 curl -H "Authorization: token YOUR_TOKEN" https://api.github.com/user
 
 # Verificar OAuth settings en GitHub:
-# - Homepage URL: http://localhost:3000
-# - Callback URL: http://localhost:7007/api/auth/github/handler/frame
+# - Homepage URL: http://localhost:3001
+# - Callback URL: http://localhost:7008/api/auth/github/handler/frame
 ```
 
 ### 🆘 Emergency Reset

@@ -57,8 +57,8 @@ By the end of this course, you will be able to:
 
 ```mermaid
 graph TB
-    UI[Backstage Frontend<br/>:3000] --> API[Backstage Backend<br/>:7007]
-    API --> DB[(PostgreSQL<br/>:5432)]
+    UI[Backstage Frontend<br/>:3001] --> API[Backstage Backend<br/>:7008]
+    API --> DB[(PostgreSQL<br/>:5433)]
     API --> GH[GitHub API]
     API --> K8S[Kubernetes Clusters]
     API --> DOCS[TechDocs]
@@ -80,9 +80,9 @@ graph TB
 
 | Component | Port | Purpose |
 |-----------|------|---------|
-| Backstage Frontend | 3000 | React-based UI |
-| Backstage Backend | 7007 | Node.js API server |
-| PostgreSQL | 5432 | Persistent data storage |
+| Backstage Frontend | 3001 | React-based UI |
+| Backstage Backend | 7008 | Node.js API server |
+| PostgreSQL | 5433 | Persistent data storage |
 | TechDocs | Built-in | Documentation site generator |
 
 ## 🚀 Quick Start
@@ -104,7 +104,7 @@ graph TB
    ```
 
 4. **Access Backstage**
-   - Open http://localhost:3000
+   - Open http://localhost:3001
    - Sign in with GitHub (configured)
    - Explore the software catalog
 

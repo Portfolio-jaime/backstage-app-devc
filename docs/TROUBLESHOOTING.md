@@ -5,6 +5,7 @@
 ### DevContainer Issues
 
 #### 1. DevContainer Fails to Build
+
 ```bash
 # Error: "Failed to build devcontainer"
 # Solution: Check Docker Desktop is running
@@ -16,6 +17,7 @@ docker ps
 ```
 
 #### 2. VS Code Can't Connect to DevContainer
+
 ```bash
 # Error: "Failed to connect. The container may have stopped"
 # Check container status
@@ -26,6 +28,7 @@ docker-compose -f .devcontainer/docker-compose.yml restart
 ```
 
 #### 3. Port Forwarding Not Working
+
 ```mermaid
 flowchart TD
     A[Port Not Accessible] --> B{Check Container Status}
@@ -43,7 +46,7 @@ flowchart TD
 ```bash
 # Check what's using ports
 lsof -i :3001  # Frontend
-lsof -i :7008  # Backend  
+lsof -i :7008  # Backend
 lsof -i :5433  # Database
 
 # Kill conflicting processes
@@ -56,6 +59,7 @@ kill -9 <PID>
 ### Database Issues
 
 #### 1. PostgreSQL Connection Failed
+
 ```bash
 # Error: "Connection refused" or "Database not ready"
 
@@ -69,10 +73,11 @@ docker-compose -f .devcontainer/docker-compose.yml logs postgres
 # PostgreSQL needs ~30 seconds to fully start
 
 # Test connection manually
-pg_isready -h postgres -p 5432 -U backstage
+pg_isready -h postgres -p 5433 -U backstage
 ```
 
 #### 2. Database Data Lost
+
 ```bash
 # Issue: Entities disappear after restart
 # Cause: Volume not properly mounted
@@ -85,6 +90,7 @@ docker volume ls | grep postgres
 ```
 
 #### 3. Permission Denied Errors
+
 ```bash
 # Error: "Permission denied for database"
 # Check user permissions
@@ -97,6 +103,7 @@ docker exec -it backstage-postgres-devc psql -U postgres -c "GRANT ALL PRIVILEGE
 ### Backstage Application Issues
 
 #### 1. Yarn Install Fails
+
 ```bash
 # Error: "Network timeout" or "EACCES permission denied"
 
@@ -112,6 +119,7 @@ node --version  # Should be 20.x
 ```
 
 #### 2. Frontend Not Loading
+
 ```bash
 # Error: "Cannot GET /" or blank page
 
@@ -129,6 +137,7 @@ yarn dev --verbose
 ```
 
 #### 3. Hot Reload Not Working
+
 ```bash
 # Issue: Changes not reflected automatically
 
@@ -145,13 +154,14 @@ ls -la packages/app/src/
 ### GitHub Integration Issues
 
 #### 1. OAuth Authentication Fails
+
 ```mermaid
 sequenceDiagram
     participant U as User
     participant B as Browser
     participant BS as Backstage
     participant GH as GitHub
-    
+
     U->>B: Click "Sign In"
     B->>GH: Redirect to OAuth
     GH->>B: Return with Code
@@ -160,7 +170,7 @@ sequenceDiagram
     GH-->>BS: ❌ Invalid Client
     BS-->>B: ❌ Authentication Failed
     B-->>U: Error Message
-    
+
     Note right of GH: Check OAuth App Settings
     Note right of BS: Verify Client ID/Secret
 ```
@@ -185,6 +195,7 @@ cat .devcontainer/.env
 ```
 
 #### 2. Repository Discovery Not Working
+
 ```bash
 # Error: "No repositories found" or "403 Forbidden"
 
@@ -199,6 +210,7 @@ curl -X POST http://localhost:7008/api/catalog/refresh
 ```
 
 #### 3. API Rate Limits
+
 ```bash
 # Error: "API rate limit exceeded"
 
@@ -218,6 +230,7 @@ catalog:
 ### Performance Issues
 
 #### 1. Slow Container Startup
+
 ```bash
 # Issue: DevContainer takes too long to build
 
@@ -232,6 +245,7 @@ docker pull node:20-bullseye
 ```
 
 #### 2. High Memory Usage
+
 ```bash
 # Monitor container resource usage
 docker stats
@@ -245,6 +259,7 @@ rm -rf */node_modules/.cache
 ```
 
 #### 3. Slow File Watching
+
 ```bash
 # Issue: Changes take long to detect
 
@@ -264,11 +279,12 @@ build/
 ### Development Workflow Issues
 
 #### 1. Code Changes Not Saved
+
 ```bash
 # Issue: VS Code not saving changes to container
 
 # Check file sync status
-# Status bar should show "Dev Container" 
+# Status bar should show "Dev Container"
 
 # Manually sync files
 # Cmd+Shift+P → "File: Save All"
@@ -278,6 +294,7 @@ ls -la /app/
 ```
 
 #### 2. Extensions Not Working
+
 ```bash
 # Issue: VS Code extensions not loading
 
@@ -292,6 +309,7 @@ cat .devcontainer/devcontainer.json
 ```
 
 #### 3. Terminal Issues
+
 ```bash
 # Issue: Terminal not working or wrong shell
 
@@ -309,6 +327,7 @@ id
 ## Diagnostic Commands
 
 ### Complete System Check
+
 ```bash
 #!/bin/bash
 echo "=== DevContainer Diagnostic ==="
@@ -330,7 +349,7 @@ env | grep -E "(GITHUB|POSTGRES|NODE|BACKEND)" | sort
 echo ""
 
 echo "=== Database Test ==="
-pg_isready -h postgres -p 5432 -U backstage
+pg_isready -h postgres -p 5433 -U backstage
 echo ""
 
 echo "=== GitHub API Test ==="
@@ -347,6 +366,7 @@ curl -s http://localhost:7008/healthcheck 2>/dev/null || echo "Backend not respo
 ```
 
 ### Clean Reset Procedure
+
 ```bash
 #!/bin/bash
 echo "🧹 Performing complete environment reset..."
@@ -372,6 +392,7 @@ echo "✅ Environment cleaned. Rebuild DevContainer to continue."
 ## Getting Help
 
 ### 1. Enable Debug Logging
+
 ```bash
 # Backstage debug mode
 DEBUG=* yarn dev
@@ -381,15 +402,18 @@ docker-compose -f .devcontainer/docker-compose.yml --verbose up
 ```
 
 ### 2. Collect Diagnostics
+
 ```bash
 # Save diagnostic information
 ./diagnostic-check.sh > diagnostic-$(date +%Y%m%d-%H%M%S).log
 ```
 
 ### 3. Contact Support
+
 - **Internal BA Team**: DevOps Slack #backstage-support
 - **Instructor**: jaime.andres.henao.arbelaez@ba.com
 - **GitHub Issues**: Repository issue tracker
 
 ---
+
 **Remember**: Most issues can be resolved by rebuilding the DevContainer or restarting Docker Desktop.

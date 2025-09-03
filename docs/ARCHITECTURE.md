@@ -21,7 +21,7 @@
 ┌─ DevContainer Environment ─────────────────────────────────────────────────┐
 │                                                                            │
 │  ┌─ React Frontend ─┐    ┌─ Node.js Backend ──┐    ┌─ PostgreSQL 15 ─────┐│
-│  │ Port: 3001       │◄──►│ Port: 7008          │◄──►│ Port: 5432          ││
+│  │ Port: 3001       │◄──►│ Port: 7008          │◄──►│ Port: 5433          ││
 │  │ Rspack Build     │    │ Express + Plugins   │    │ Persistent Storage  ││
 │  │ Material-UI      │    │ Authentication      │    │ Entity Tables       ││
 │  └──────────────────┘    └─────────┬───────────┘    └─────────────────────┘│
@@ -52,20 +52,20 @@ graph TB
         Browser["🌐 Web Browser<br/>localhost:3001"]
         VSCode["💻 VS Code IDE<br/>DevContainer Extension"]
     end
-    
+
     subgraph "DevContainer"
         subgraph "Port Forward"
             P3001[":3001"]
-            P7008[":7008"] 
+            P7008[":7008"]
             P5433[":5433"]
         end
-        
+
         subgraph "Application Layer"
             Frontend["⚛️ React Frontend<br/>Port: 3001"]
             Backend["🚀 Node.js Backend<br/>Port: 7008"]
-            Database["🗄️ PostgreSQL<br/>Port: 5432"]
+            Database["🗄️ PostgreSQL<br/>Port: 5433"]
         end
-        
+
         subgraph "Backstage Plugins"
             Auth["🔐 GitHub OAuth"]
             Catalog["📋 Entity Catalog"]
@@ -75,32 +75,32 @@ graph TB
             K8s["☸️ Kubernetes"]
         end
     end
-    
+
     subgraph "External Services"
         GitHub["🐙 GitHub API"]
         GitHubOAuth["🔑 GitHub OAuth"]
         K8sCluster["☸️ K8s Cluster"]
     end
-    
+
     Browser --> P3001
     Browser --> P7008
     VSCode -.-> P3001
     VSCode -.-> P7008
-    
+
     P3001 --> Frontend
     P7008 --> Backend
     P5433 --> Database
-    
+
     Frontend <--> Backend
     Backend <--> Database
-    
+
     Backend --> Auth
     Backend --> Catalog
     Backend --> Scaffolder
     Backend --> TechDocs
     Backend --> Search
     Backend --> K8s
-    
+
     Auth <--> GitHubOAuth
     Catalog <--> GitHub
     Scaffolder <--> GitHub
@@ -110,6 +110,7 @@ graph TB
 ## Component Architecture
 
 ### Frontend Layer (Port 3001)
+
 ```
 React Application
 ├── App Shell (Navigation, Layout)
@@ -117,7 +118,7 @@ React Application
 ├── Routing (React Router)
 ├── Plugin Integration
 │   ├── Catalog UI
-│   ├── Scaffolder UI  
+│   ├── Scaffolder UI
 │   ├── TechDocs UI
 │   ├── Search UI
 │   └── Kubernetes UI
@@ -125,6 +126,7 @@ React Application
 ```
 
 ### Backend Layer (Port 7008)
+
 ```
 Node.js Express Server
 ├── Core Framework
@@ -152,7 +154,8 @@ Node.js Express Server
     └── /api/kubernetes/*
 ```
 
-### Database Layer (Port 5432)
+### Database Layer (Port 5433)
+
 ```
 PostgreSQL 15
 ├── Entity Tables
@@ -173,6 +176,7 @@ PostgreSQL 15
 ## Network Flow
 
 ### 1. User Authentication Flow
+
 ```mermaid
 sequenceDiagram
     participant User as User Browser
@@ -196,11 +200,12 @@ sequenceDiagram
 ```
 
 ### 2. Catalog Entity Request Flow
+
 ```mermaid
 sequenceDiagram
     participant Frontend as React Frontend<br/>:3001
     participant Backend as Node.js Backend<br/>:7008
-    participant Database as PostgreSQL<br/>:5432
+    participant Database as PostgreSQL<br/>:5433
     participant GitHub as GitHub API<br/>External
 
     Frontend->>Backend: GET /api/catalog/entities
@@ -215,6 +220,7 @@ sequenceDiagram
 ## Security Architecture
 
 ### Authentication & Authorization
+
 ```
 GitHub OAuth Flow
 ├── OAuth App Registration
@@ -232,6 +238,7 @@ GitHub OAuth Flow
 ```
 
 ### Data Security
+
 - **Environment Variables**: Sensitive data isolation
 - **Database Encryption**: SSL connections (disabled in dev)
 - **API Authentication**: Bearer tokens
@@ -241,6 +248,7 @@ GitHub OAuth Flow
 ## Performance Architecture
 
 ### Caching Strategy
+
 ```
 Multi-Layer Caching
 ├── Browser Cache (Static Assets)
@@ -251,6 +259,7 @@ Multi-Layer Caching
 ```
 
 ### Scalability Considerations
+
 - **Horizontal Scaling**: Multiple backend instances
 - **Database Sharding**: Entity distribution
 - **Plugin Isolation**: Independent scaling
@@ -259,6 +268,7 @@ Multi-Layer Caching
 ## Development Architecture
 
 ### DevContainer Configuration
+
 ```
 Development Environment
 ├── Base Image: mcr.microsoft.com/devcontainers/typescript-node
@@ -280,6 +290,7 @@ Development Environment
 ```
 
 ### Build Architecture
+
 ```
 Build Pipeline
 ├── Frontend Build (Rspack)
@@ -300,6 +311,7 @@ Build Pipeline
 ## Monitoring & Observability
 
 ### Logging Architecture
+
 ```
 Centralized Logging
 ├── Application Logs
@@ -318,6 +330,7 @@ Centralized Logging
 ```
 
 ### Health Monitoring
+
 - **Health Endpoints**: Service status checks
 - **Metrics Collection**: Performance indicators
 - **Error Tracking**: Exception monitoring
@@ -326,6 +339,7 @@ Centralized Logging
 ## Deployment Architecture
 
 ### Container Orchestration
+
 ```
 Docker Compose Stack
 ├── backstage-app (Main Application)
@@ -335,6 +349,7 @@ Docker Compose Stack
 ```
 
 ### Production Considerations
+
 - **Load Balancing**: Multiple instances
 - **Database Clustering**: High availability
 - **SSL/TLS**: HTTPS encryption

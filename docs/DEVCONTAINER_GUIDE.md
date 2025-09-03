@@ -7,6 +7,7 @@ This guide details the DevContainer configuration for the Backstage DevOps Cours
 ## DevContainer Configuration
 
 ### File Structure
+
 ```
 .devcontainer/
 ├── devcontainer.json          # Main DevContainer configuration
@@ -23,7 +24,7 @@ This guide details the DevContainer configuration for the Backstage DevOps Cours
   "dockerComposeFile": "docker-compose.yml",
   "service": "backstage-app",
   "workspaceFolder": "/app",
-  
+
   "customizations": {
     "vscode": {
       "extensions": [
@@ -81,7 +82,7 @@ This guide details the DevContainer configuration for the Backstage DevOps Cours
     "NODE_ENV": "development",
     "CHOKIDAR_USEPOLLING": "true"
   },
-  
+
   "mounts": [
     "source=${localWorkspaceFolder}/.env,target=/app/.env,type=bind,consistency=cached"
   ]
@@ -91,7 +92,7 @@ This guide details the DevContainer configuration for the Backstage DevOps Cours
 ### Docker Compose Configuration
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   backstage-app:
@@ -122,7 +123,7 @@ services:
       POSTGRES_PASSWORD: backstage_password
       POSTGRES_DB: backstage
     ports:
-      - "5433:5432"
+      - "5433:5433"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -140,11 +141,13 @@ networks:
 ## Setup Instructions
 
 ### 1. Prerequisites
+
 - **VS Code** with Dev Containers extension installed
 - **Docker Desktop** running with at least 4GB RAM
 - **Git** configured with your credentials
 
 ### 2. Initial Setup
+
 ```bash
 # Clone the repository
 git clone <your-repo-url>
@@ -158,6 +161,7 @@ code .
 ```
 
 ### 3. Environment Configuration
+
 ```bash
 # Copy environment template
 cp .env.example .env
@@ -172,6 +176,7 @@ nano .env
 ```
 
 ### 4. Application Setup
+
 ```bash
 # Navigate to backstage directory
 cd backstage
@@ -186,51 +191,53 @@ yarn start
 ## DevContainer Features
 
 ### VS Code Extensions
-| Extension | Purpose |
-|-----------|---------|
-| **TypeScript** | Language support and IntelliSense |
-| **Prettier** | Code formatting |
-| **ESLint** | Code linting |
-| **YAML** | Configuration file support |
-| **Docker** | Container management |
-| **Kubernetes** | K8s resource management |
-| **GitHub Actions** | CI/CD workflow support |
+
+| Extension          | Purpose                           |
+| ------------------ | --------------------------------- |
+| **TypeScript**     | Language support and IntelliSense |
+| **Prettier**       | Code formatting                   |
+| **ESLint**         | Code linting                      |
+| **YAML**           | Configuration file support        |
+| **Docker**         | Container management              |
+| **Kubernetes**     | K8s resource management           |
+| **GitHub Actions** | CI/CD workflow support            |
 
 ### Development Tools
-| Tool | Version | Purpose |
-|------|---------|---------|
-| **Node.js** | 22.x | JavaScript runtime |
-| **Yarn** | 4.4.1 | Package manager |
-| **Git** | Latest | Version control |
-| **GitHub CLI** | Latest | GitHub integration |
-| **kubectl** | Latest | Kubernetes CLI |
-| **Helm** | Latest | Kubernetes package manager |
+
+| Tool           | Version | Purpose                    |
+| -------------- | ------- | -------------------------- |
+| **Node.js**    | 22.x    | JavaScript runtime         |
+| **Yarn**       | 4.4.1   | Package manager            |
+| **Git**        | Latest  | Version control            |
+| **GitHub CLI** | Latest  | GitHub integration         |
+| **kubectl**    | Latest  | Kubernetes CLI             |
+| **Helm**       | Latest  | Kubernetes package manager |
 
 ### Port Forwarding
-| Port | Service | Description |
-|------|---------|-------------|
-| **3001** | Frontend | React application |
-| **7008** | Backend | Node.js API server |
-| **5433** | Database | PostgreSQL (external) |
+
+| Port     | Service    | Description             |
+| -------- | ---------- | ----------------------- |
+| **3001** | Frontend   | React application       |
+| **7008** | Backend    | Node.js API server      |
+| **5433** | Database   | PostgreSQL (external)   |
 | **8083** | Additional | Reserved for extensions |
 
 ## Customization
 
 ### Adding Extensions
+
 ```json
 {
   "customizations": {
     "vscode": {
-      "extensions": [
-        "existing.extensions",
-        "new-extension-id"
-      ]
+      "extensions": ["existing.extensions", "new-extension-id"]
     }
   }
 }
 ```
 
 ### Environment Variables
+
 ```json
 {
   "containerEnv": {
@@ -241,6 +248,7 @@ yarn start
 ```
 
 ### Additional Features
+
 ```json
 {
   "features": {
@@ -256,6 +264,7 @@ yarn start
 ### Common Issues
 
 #### 1. Port Forwarding Not Working
+
 ```bash
 # Check VS Code Ports tab
 # Manually add ports if not visible
@@ -263,6 +272,7 @@ yarn start
 ```
 
 #### 2. Node Modules Issues
+
 ```bash
 # Clear node_modules volume
 docker volume rm backstage-app-devc_node_modules
@@ -270,12 +280,14 @@ docker volume rm backstage-app-devc_node_modules
 ```
 
 #### 3. Permission Issues
+
 ```bash
 # Fix file permissions
 sudo chown -R node:node /app
 ```
 
 #### 4. Database Connection Issues
+
 ```bash
 # Check PostgreSQL container
 docker-compose ps
@@ -284,6 +296,7 @@ docker-compose restart postgres
 ```
 
 ### Debug Commands
+
 ```bash
 # Check container status
 docker-compose ps
@@ -303,23 +316,23 @@ docker network inspect backstage-app-devc_backstage-network
 ## Performance Optimization
 
 ### Resource Allocation
+
 ```json
 {
-  "runArgs": [
-    "--memory=4g",
-    "--cpus=2"
-  ]
+  "runArgs": ["--memory=4g", "--cpus=2"]
 }
 ```
 
 ### Volume Optimization
+
 ```yaml
 volumes:
-  - ../:/app:cached              # Cached for better performance
-  - node_modules:/app/backstage/node_modules  # Named volume
+  - ../:/app:cached # Cached for better performance
+  - node_modules:/app/backstage/node_modules # Named volume
 ```
 
 ### File Watching
+
 ```json
 {
   "containerEnv": {
@@ -331,16 +344,19 @@ volumes:
 ## Security Considerations
 
 ### Environment Variables
+
 - Never commit `.env` files
 - Use secrets management in production
 - Rotate GitHub tokens regularly
 
 ### Container Security
+
 - Use non-root user (`node`)
 - Limit container capabilities
 - Scan images for vulnerabilities
 
 ### Network Security
+
 - Restrict port access
 - Use internal networks
 - Enable SSL/TLS in production
@@ -348,6 +364,7 @@ volumes:
 ## Advanced Configuration
 
 ### Multi-Stage Build
+
 ```dockerfile
 FROM node:22-alpine AS base
 WORKDIR /app
@@ -361,6 +378,7 @@ CMD ["npm", "run", "dev"]
 ```
 
 ### Health Checks
+
 ```yaml
 services:
   backstage-app:
@@ -374,21 +392,25 @@ services:
 ## Best Practices
 
 ### 1. Container Lifecycle
+
 - Use `postCreateCommand` for setup
 - Implement proper shutdown handling
 - Use health checks for reliability
 
 ### 2. Development Workflow
+
 - Keep containers lightweight
 - Use volume mounts for code
 - Implement hot reloading
 
 ### 3. Resource Management
+
 - Limit container resources
 - Use named volumes for data
 - Clean up unused containers
 
 ### 4. Security
+
 - Use official base images
 - Keep images updated
 - Scan for vulnerabilities

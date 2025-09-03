@@ -24,6 +24,7 @@ backstage/
 ## Main Configuration (`app-config.yaml`)
 
 ### Application Settings
+
 ```yaml
 app:
   title: Backstage DevOps Course - BA Training
@@ -47,6 +48,7 @@ organization:
 ```
 
 ### Backend Configuration
+
 ```yaml
 backend:
   auth:
@@ -56,17 +58,17 @@ backend:
   listen:
     port: 7008
     # host: 127.0.0.1  # Uncomment to bind to specific interface
-  
+
   # Content Security Policy
   csp:
-    connect-src: ["'self'", 'http:', 'https:']
-  
+    connect-src: ["'self'", "http:", "https:"]
+
   # Cross-Origin Resource Sharing
   cors:
     origin: http://localhost:3001
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
     credentials: true
-  
+
   # Database Configuration
   database:
     client: pg
@@ -76,10 +78,11 @@ backend:
       user: ${POSTGRES_USER}
       password: ${POSTGRES_PASSWORD}
       database: ${POSTGRES_DB}
-      ssl: false  # Disabled for local development
+      ssl: false # Disabled for local development
 ```
 
 ### GitHub Integration
+
 ```yaml
 integrations:
   github:
@@ -92,6 +95,7 @@ integrations:
 ```
 
 ### Authentication Configuration
+
 ```yaml
 auth:
   environment: development
@@ -107,46 +111,58 @@ auth:
 ```
 
 ### Catalog Configuration
+
 ```yaml
 catalog:
   import:
     entityFilename: catalog-info.yaml
     pullRequestBranchName: backstage-integration
-  
+
   rules:
-    - allow: [Component, System, API, Resource, Location, Template, User, Group, Domain]
-  
+    - allow:
+        [
+          Component,
+          System,
+          API,
+          Resource,
+          Location,
+          Template,
+          User,
+          Group,
+          Domain,
+        ]
+
   # GitHub entity providers for automatic discovery
   providers:
     github:
       courseProvider:
-        organization: 'jaime-henao'
-        catalogPath: '/catalog-info.yaml'
+        organization: "jaime-henao"
+        catalogPath: "/catalog-info.yaml"
         filters:
-          branch: 'main'
-          repository: '.*backstage.*'
+          branch: "main"
+          repository: ".*backstage.*"
         schedule:
           frequency: { minutes: 30 }
           timeout: { minutes: 3 }
           initialDelay: { seconds: 15 }
-  
+
   locations:
     # Course-specific entities
     - type: file
       target: ../../examples/entities.yaml
-    
+
     # Course software templates
     - type: file
       target: ../../examples/template/template.yaml
       rules:
         - allow: [Template]
-    
+
     # Course organizational data
     - type: file
       target: ../../examples/org.yaml
       rules:
         - allow: [User, Group]
-    
+
     # External example data
     - type: url
       target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all.yaml
@@ -155,22 +171,24 @@ catalog:
 ```
 
 ### TechDocs Configuration
+
 ```yaml
 techdocs:
-  builder: 'local'
+  builder: "local"
   generator:
-    runIn: 'docker'
+    runIn: "docker"
   publisher:
-    type: 'local'
+    type: "local"
 ```
 
 ### Scaffolder Configuration
+
 ```yaml
 scaffolder:
   # Default branch for created repositories
   defaultBranch: main
   # Default author for commits
-  defaultCommitMessage: 'Initial commit from Backstage'
+  defaultCommitMessage: "Initial commit from Backstage"
 ```
 
 ## Local Development Configuration (`app-config.local.yaml`)
@@ -178,7 +196,7 @@ scaffolder:
 ```yaml
 app:
   listen:
-    host: 0.0.0.0  # Allow external connections
+    host: 0.0.0.0 # Allow external connections
 
 auth:
   environment: development
@@ -206,9 +224,9 @@ catalog:
         - allow: [Group]
 
 techdocs:
-  builder: 'local'
+  builder: "local"
   publisher:
-    type: 'local'
+    type: "local"
   generator:
     runIn: local
 ```
@@ -226,7 +244,7 @@ AUTH_GITHUB_CLIENT_SECRET=1718e24d1dadccb7507c4dd1aba4138074c09b7c
 
 # Database Configuration
 POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
+POSTGRES_PORT=5433
 POSTGRES_USER=backstage
 POSTGRES_PASSWORD=backstage_password
 POSTGRES_DB=backstage
@@ -243,6 +261,7 @@ LOG_LEVEL=info
 ### Installed Plugins
 
 #### Core Plugins
+
 ```json
 {
   "@backstage/plugin-catalog": "Catalog management",
@@ -255,6 +274,7 @@ LOG_LEVEL=info
 ```
 
 #### GitHub Integration Plugins
+
 ```json
 {
   "@backstage/plugin-catalog-backend-module-github": "GitHub entity discovery",
@@ -264,6 +284,7 @@ LOG_LEVEL=info
 ```
 
 #### Kubernetes Plugins
+
 ```json
 {
   "@backstage/plugin-kubernetes": "K8s resource visualization",
@@ -274,6 +295,7 @@ LOG_LEVEL=info
 ### Plugin Configuration Details
 
 #### Catalog Plugin
+
 ```yaml
 # Backend configuration
 catalog:
@@ -287,18 +309,20 @@ catalog:
 ```
 
 #### Scaffolder Plugin
+
 ```yaml
 scaffolder:
   actions:
-    - id: 'github:repo:create'
-      description: 'Create a GitHub repository'
-    - id: 'github:repo:push'
-      description: 'Push to GitHub repository'
-    - id: 'catalog:register'
-      description: 'Register in Backstage catalog'
+    - id: "github:repo:create"
+      description: "Create a GitHub repository"
+    - id: "github:repo:push"
+      description: "Push to GitHub repository"
+    - id: "catalog:register"
+      description: "Register in Backstage catalog"
 ```
 
 #### TechDocs Plugin
+
 ```yaml
 techdocs:
   requestUrl: http://localhost:7008/api/techdocs
@@ -306,21 +330,23 @@ techdocs:
 ```
 
 #### Kubernetes Plugin
+
 ```yaml
 kubernetes:
   serviceLocatorMethod:
-    type: 'multiTenant'
+    type: "multiTenant"
   clusterLocatorMethods:
-    - type: 'config'
+    - type: "config"
       clusters:
         - url: https://kubernetes.default.svc
           name: local-cluster
-          authProvider: 'serviceAccount'
+          authProvider: "serviceAccount"
 ```
 
 ## Software Templates
 
 ### Template Structure
+
 ```yaml
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
@@ -354,25 +380,26 @@ spec:
           - .github/workflows/*
         values:
           component_id: ${{ parameters.name }}
-    
+
     - id: publish
       name: Publish
       action: publish:github
       input:
         description: This is ${{ parameters.name }}
         repoUrl: ${{ parameters.repoUrl }}
-    
+
     - id: register
       name: Register
       action: catalog:register
       input:
         repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
-        catalogInfoPath: '/catalog-info.yaml'
+        catalogInfoPath: "/catalog-info.yaml"
 ```
 
 ## Entity Definitions
 
 ### Component Entity
+
 ```yaml
 apiVersion: backstage.io/v1alpha1
 kind: Component
@@ -396,6 +423,7 @@ spec:
 ```
 
 ### System Entity
+
 ```yaml
 apiVersion: backstage.io/v1alpha1
 kind: System
@@ -408,6 +436,7 @@ spec:
 ```
 
 ### API Entity
+
 ```yaml
 apiVersion: backstage.io/v1alpha1
 kind: API
@@ -426,37 +455,37 @@ spec:
 ## Advanced Configuration
 
 ### Custom Theme
+
 ```typescript
 // packages/app/src/theme.ts
-import { createTheme, lightTheme } from '@backstage/theme';
+import { createTheme, lightTheme } from "@backstage/theme";
 
 export const baTheme = createTheme({
   palette: {
     ...lightTheme.palette,
     primary: {
-      main: '#1f5582', // BA Blue
+      main: "#1f5582", // BA Blue
     },
     secondary: {
-      main: '#e31837', // BA Red
+      main: "#e31837", // BA Red
     },
   },
 });
 ```
 
 ### Custom Plugin Integration
+
 ```typescript
 // packages/app/src/App.tsx
-import { customPlugin } from '../plugins/custom';
+import { customPlugin } from "../plugins/custom";
 
 const app = createApp({
-  plugins: [
-    ...defaultPlugins,
-    customPlugin,
-  ],
+  plugins: [...defaultPlugins, customPlugin],
 });
 ```
 
 ### Database Schema Customization
+
 ```sql
 -- Custom tables for course-specific data
 CREATE TABLE course_progress (
@@ -479,6 +508,7 @@ CREATE TABLE course_feedback (
 ## Performance Optimization
 
 ### Caching Configuration
+
 ```yaml
 backend:
   cache:
@@ -488,6 +518,7 @@ backend:
 ```
 
 ### Database Optimization
+
 ```yaml
 backend:
   database:
@@ -506,21 +537,23 @@ backend:
 ## Security Configuration
 
 ### Content Security Policy
+
 ```yaml
 backend:
   csp:
     connect-src:
       - "'self'"
-      - 'http:'
-      - 'https:'
-      - 'data:'
+      - "http:"
+      - "https:"
+      - "data:"
     img-src:
       - "'self'"
-      - 'data:'
-      - 'https://avatars.githubusercontent.com'
+      - "data:"
+      - "https://avatars.githubusercontent.com"
 ```
 
 ### CORS Configuration
+
 ```yaml
 backend:
   cors:
@@ -540,6 +573,7 @@ backend:
 ## Monitoring and Logging
 
 ### Logging Configuration
+
 ```yaml
 backend:
   logger:
@@ -552,6 +586,7 @@ backend:
 ```
 
 ### Metrics Collection
+
 ```yaml
 backend:
   metrics:
@@ -565,6 +600,7 @@ backend:
 ### Common Configuration Issues
 
 #### 1. Plugin Not Loading
+
 ```bash
 # Check plugin registration
 grep -r "plugin-name" packages/
@@ -574,6 +610,7 @@ yarn why @backstage/plugin-name
 ```
 
 #### 2. Authentication Issues
+
 ```bash
 # Verify environment variables
 echo $AUTH_GITHUB_CLIENT_ID
@@ -585,6 +622,7 @@ echo $AUTH_GITHUB_CLIENT_SECRET
 ```
 
 #### 3. Database Connection Issues
+
 ```bash
 # Test database connection
 docker exec -it backstage-postgres psql -U backstage -d backstage -c "SELECT version();"
@@ -595,6 +633,7 @@ echo $POSTGRES_PORT
 ```
 
 ### Debug Commands
+
 ```bash
 # Enable debug logging
 LOG_LEVEL=debug yarn start
@@ -609,21 +648,25 @@ yarn backstage-cli catalog:validate
 ## Best Practices
 
 ### 1. Configuration Management
+
 - Use environment variables for secrets
 - Version control configuration files
 - Document configuration changes
 
 ### 2. Security
+
 - Rotate secrets regularly
 - Use least privilege access
 - Enable audit logging
 
 ### 3. Performance
+
 - Optimize database queries
 - Implement caching strategies
 - Monitor resource usage
 
 ### 4. Maintenance
+
 - Keep plugins updated
 - Regular configuration reviews
 - Monitor error logs

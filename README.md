@@ -12,9 +12,11 @@ A comprehensive Backstage training environment designed for DevOps engineers, fe
 | **DevContainer** | - | ✅ Configured | VS Code integration active |
 | **GitHub OAuth** | - | ✅ Configured | Authentication ready |
 
-**⚡ Quick Start**: See [docs/QUICK_START.md](./docs/QUICK_START.md) to get started in 5 minutes with DevContainer.
+**⚡ Quick Start**: See [docs/QUICK_SETUP_FUNCIONANDO.md](./docs/QUICK_SETUP_FUNCIONANDO.md) to get started in 3 steps with DevContainer.
 
-## 🚀 DevContainer Quick Start
+**📋 Configuración Detallada**: [docs/CONFIGURACION_FINAL_FUNCIONANDO.md](./docs/CONFIGURACION_FINAL_FUNCIONANDO.md) - Documentación completa de la configuración funcionando.
+
+## 🚀 DevContainer Quick Start - ✅ CONFIGURACIÓN FUNCIONANDO
 
 ### Prerequisites
 
@@ -31,31 +33,44 @@ code /path/to/backstage-app-devc
 # In VS Code: Cmd+Shift+P → "Dev Containers: Reopen in Container"
 ```
 
-### 2. Setup Environment (Inside Container)
+### 2. Setup Environment (Automatic)
+
+El DevContainer se configurará automáticamente:
 
 ```bash
-# Run the DevContainer setup script
-.devcontainer/setup-course.sh
+# ✅ Automatically executed:
+# - .devcontainer/setup-course.sh
+# - yarn install dependencies  
+# - Configure GitHub integration
+```
 
+### 3. Start Backstage (Inside VS Code Terminal)
+
+```bash
 # Navigate to Backstage directory
 cd backstage
 
-# Install dependencies
-yarn install
-```
-
-### 3. Start Backstage
-
-```bash
-# Start development server
+# Start development server (both frontend + backend)
 yarn dev
 ```
 
-### 4. Access Application
+### 4. Access Application ✅ FUNCIONANDO
 
-- **Frontend**: http://localhost:3001
-- **Backend API**: http://localhost:7008
-- **PostgreSQL**: localhost:5433
+| Servicio | URL | Puerto | Estado |
+|----------|-----|---------|---------|
+| **Frontend UI** | http://localhost:3001 | 3001→3001 | ✅ **FUNCIONANDO** |
+| **Backend API** | http://localhost:7008 | 7008→7008 | ✅ **FUNCIONANDO** |
+| **PostgreSQL** | localhost:5433 | 5433→5432 | ✅ **FUNCIONANDO** |
+
+### 🔑 Configuración Clave que Funciona
+
+**Mapeo de Puertos 1:1** (Host:Container):
+```yaml
+ports:
+  - "3001:3001"  # Frontend React
+  - "7008:7008"  # Backend Node.js  
+  - "5433:5432"  # PostgreSQL
+```
 
 ## 📋 What's Included
 
@@ -130,8 +145,8 @@ BACKEND_SECRET=generated_secure_secret
 2. **OAuth App** (for user login):
    - Go to GitHub → Settings → Developer settings → OAuth Apps
    - Create new app with:
-     - Homepage URL: `http://localhost:3000`
-     - Callback URL: `http://localhost:7007/api/auth/github/handler/frame`
+     - Homepage URL: `http://localhost:3001`
+     - Callback URL: `http://localhost:7008/api/auth/github/handler/frame`
    - Add Client ID/Secret to `.env`
 
 ## 🏃‍♂️ Common Operations
@@ -182,10 +197,10 @@ docker-compose logs -f
 docker exec -it backstage-app sh
 
 # Check API health
-curl http://localhost:7007/healthcheck
+curl http://localhost:7008/healthcheck
 
 # Test authentication
-curl http://localhost:7007/api/auth/github/refresh
+curl http://localhost:7008/api/auth/github/refresh
 ```
 
 ## 📊 Monitoring & Health
@@ -194,8 +209,8 @@ curl http://localhost:7007/api/auth/github/refresh
 
 | Service | Endpoint | Expected Response |
 |---------|----------|------------------|
-| Frontend | http://localhost:3000 | Backstage UI loads |
-| Backend | http://localhost:7007/healthcheck | `{"status":"ok"}` |
+| Frontend | http://localhost:3001 | Backstage UI loads |
+| Backend | http://localhost:7008/healthcheck | `{"status":"ok"}` |
 | Database | `docker exec backstage-postgres pg_isready` | `accepting connections` |
 
 ### Performance Monitoring
@@ -205,7 +220,7 @@ curl http://localhost:7007/api/auth/github/refresh
 docker stats
 
 # Response times
-curl -w "Total: %{time_total}s\n" -o /dev/null -s http://localhost:7007/api/catalog/entities
+curl -w "Total: %{time_total}s\n" -o /dev/null -s http://localhost:7008/api/catalog/entities
 
 # Database performance
 docker exec -it backstage-postgres psql -U backstage -d backstage -c "SELECT COUNT(*) FROM entities;"
@@ -251,7 +266,7 @@ docker exec -it backstage-postgres psql -U backstage -d backstage -c "SELECT COU
    - **Solution**: Verify OAuth app settings
 
 3. **Port conflicts**
-   - **Cause**: Services already running on ports 3000/7007
+   - **Cause**: Services already running on ports 3001/7008
    - **Solution**: Stop conflicting services or change ports
 
 4. **Database connection errors**
@@ -279,7 +294,7 @@ Comprehensive course documentation is available at:
 - **Architecture Guide**: [docs/course/architecture.md](./docs/course/architecture.md)  
 - **Troubleshooting**: [docs/course/troubleshooting.md](./docs/course/troubleshooting.md)
 
-Or access via Backstage TechDocs at: http://localhost:3000/docs
+Or access via Backstage TechDocs at: http://localhost:3001/docs
 
 ## 🤝 Contributing
 

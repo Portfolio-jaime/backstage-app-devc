@@ -4,18 +4,21 @@ Este devcontainer está configurado para el curso de DevOps de Backstage para Br
 
 ## 🚀 Quick Start
 
-1. **Abrir en VS Code**: 
+1. **Abrir en VS Code**:
+
    - Abre VS Code en el directorio del proyecto
    - Cuando aparezca la notificación "Reopen in Container", selecciona esa opción
    - O usa Command Palette: `Dev Containers: Reopen in Container`
 
 2. **Configurar GitHub Integration**:
+
    ```bash
    # Dentro del devcontainer, ejecuta:
    ./.devcontainer/setup-course.sh
    ```
 
 3. **Iniciar servicios**:
+
    ```bash
    # Los servicios se inician automáticamente con docker-compose
    # Verificar estado:
@@ -38,8 +41,8 @@ Este devcontainer está configurado para el curso de DevOps de Backstage para Br
 ## 🛠️ Configuración
 
 - **Puerto Frontend**: 3001 (auto-forwarded)
-- **Puerto Backend**: 7008 (auto-forwarded)  
-- **PostgreSQL**: 5432
+- **Puerto Backend**: 7008 (auto-forwarded)
+- **PostgreSQL**: 5433
 - **Workspace**: `/app`
 - **Usuario**: `node`
 
