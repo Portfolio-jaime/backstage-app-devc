@@ -259,3 +259,12 @@ dashboard:
     branch: main
     # Refresh configuration from repository every 5 minutes
     refreshInterval: 300000
+
+# Proxy for GitHub raw content (to avoid CORS issues)
+proxy:
+  endpoints:
+    '/api/dashboard-config':
+      target: 'https://raw.githubusercontent.com/Portfolio-jaime/backstage-dashboard-templates/main/templates/ba-devops-dashboard'
+      changeOrigin: true
+      pathRewrite:
+        '^/api/dashboard-config': ''

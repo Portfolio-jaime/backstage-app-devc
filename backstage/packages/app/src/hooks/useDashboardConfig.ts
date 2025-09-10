@@ -44,6 +44,8 @@ interface UseDashboardConfigResult {
   refetch: () => Promise<void>;
 }
 
+// Use Backstage proxy instead of direct GitHub fetch to avoid CORS
+const PROXY_CONFIG_URL = '/api/dashboard-config/config.yaml';
 const GITHUB_CONFIG_URL = 'https://raw.githubusercontent.com/Portfolio-jaime/backstage-dashboard-templates/main/templates/ba-devops-dashboard/config.yaml';
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
@@ -145,35 +147,45 @@ export const useDashboardConfig = (): UseDashboardConfigResult => {
       setLoading(true);
       setError(null);
 
-      console.log('Fetching dashboard configuration from GitHub...');
+      console.log('🔄 Fetching dashboard configuration via Backstage proxy...');
+      console.log('📡 Proxy URL:', PROXY_CONFIG_URL);
+      console.log('📡 Original GitHub URL:', GITHUB_CONFIG_URL);
       
-      const response = await fetch(GITHUB_CONFIG_URL, {
+      const response = await fetch(PROXY_CONFIG_URL, {
         method: 'GET',
-        mode: 'cors',
-        cache: 'no-cache',
         headers: {
           'Accept': 'text/plain',
-          'User-Agent': 'Backstage-Dashboard/1.0',
+          'Content-Type': 'text/plain',
         },
       });
+
+      console.log('📥 Response status:', response.status, response.statusText);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch config: ${response.status} ${response.statusText}`);
       }
 
       const yamlContent = await response.text();
+      console.log('📄 YAML content length:', yamlContent.length);
+      console.log('📄 YAML preview:', yamlContent.substring(0, 300));
+      
       const parsedConfig = parseYamlConfig(yamlContent);
       
-      console.log('Dashboard configuration loaded successfully:', parsedConfig.metadata.title);
+      console.log('✅ Dashboard configuration loaded successfully!');
+      console.log('🏷️  Title:', parsedConfig.metadata.title);
+      console.log('🎛️  Widgets enabled:', Object.keys(parsedConfig.spec.widgets).filter(w => parsedConfig.spec.widgets[w]?.enabled));
+      
       setConfig(parsedConfig);
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      console.error('Error fetching dashboard config:', errorMessage);
+      console.error('❌ Error fetching dashboard config:', errorMessage);
+      console.error('🔧 Error details:', err);
       setError(`Failed to load external config: ${errorMessage}`);
       
       // Use minimal fallback configuration
-      console.log('Using minimal fallback configuration');
+      console.log('🔄 Using minimal fallback configuration');
+      console.log('🎛️  Fallback widgets:', Object.keys(MINIMAL_FALLBACK.spec.widgets));
       setConfig(MINIMAL_FALLBACK);
     } finally {
       setLoading(false);
