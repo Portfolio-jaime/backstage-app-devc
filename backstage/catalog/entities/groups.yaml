@@ -2,7 +2,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Group
 metadata:
   name: development
-  description: development Team 
+  description: development Team
 spec:
   type: team
   profile:
@@ -17,6 +17,84 @@ kind: Group
 metadata:
   name: poc
   description: Proof of Concept Team
+spec:
+  type: team
+  profile:
+    email: jaimehenao8126@outlook.com
+    picture: https://api.dicebear.com/7.x/identicon/svg?seed=PixelArt&backgroundType=solid,gradientLinear&backgroundColor=c0aede,d1d4f9
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: sre-team
+  description: sre Team
+spec:
+  type: team
+  profile:
+    email: jaimehenao8126@outlook.com
+    picture: https://api.dicebear.com/7.x/identicon/svg?seed=PixelArt&backgroundType=solid,gradientLinear&backgroundColor=c0aede,d1d4f9
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: cloud-team
+  description: cloud Team
+spec:
+  type: team
+  profile:
+    email: jaimehenao8126@outlook.com
+    picture: https://api.dicebear.com/7.x/identicon/svg?seed=PixelArt&backgroundType=solid,gradientLinear&backgroundColor=c0aede,d1d4f9
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: devops-team
+  description: devops Team
+spec:
+  type: team
+  profile:
+    email: jaimehenao8126@outlook.com
+    picture: https://api.dicebear.com/7.x/identicon/svg?seed=PixelArt&backgroundType=solid,gradientLinear&backgroundColor=c0aede,d1d4f9
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: java-team
+  description: java Team
+spec:
+  type: team
+  profile:
+    email: jaimehenao8126@outlook.com
+    picture: https://api.dicebear.com/7.x/identicon/svg?seed=PixelArt&backgroundType=solid,gradientLinear&backgroundColor=c0aede,d1d4f9
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: dev-team
+  description: dev Team
+spec:
+  type: team
+  profile:
+    email: jaimehenao8126@outlook.com
+    picture: https://api.dicebear.com/7.x/identicon/svg?seed=PixelArt&backgroundType=solid,gradientLinear&backgroundColor=c0aede,d1d4f9
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: tools-team
+  description: tools Team
 spec:
   type: team
   profile:

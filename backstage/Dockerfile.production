@@ -1,0 +1,101 @@
+# Multi-stage Dockerfile for production Backstage deployment
+# Optimized for British Airways DevOps Platform
+
+# Stage 1: Build dependencies and compile TypeScript
+FROM node:20-alpine AS build
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies needed for building
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git \
+    curl
+
+# Copy package files
+COPY package.json yarn.lock ./
+COPY packages/app/package.json ./packages/app/
+COPY packages/backend/package.json ./packages/backend/
+
+# Install dependencies with frozen lockfile for reproducible builds
+RUN yarn install --frozen-lockfile --network-timeout 300000
+
+# Copy source code
+COPY . .
+
+# Set environment for build
+ENV NODE_ENV=production
+
+# Build the application
+RUN yarn build:backend
+
+# Stage 2: Production runtime
+FROM node:20-alpine AS runtime
+
+# Install security updates and runtime dependencies
+RUN apk update && apk upgrade && \
+    apk add --no-cache \
+    tini \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S backstage && \
+    adduser -S backstage -u 1001 -G backstage
+
+# Set working directory
+WORKDIR /app
+
+# Copy built application from build stage
+COPY --from=build --chown=backstage:backstage /app/packages/backend/dist/bundle.tar.gz ./
+COPY --from=build --chown=backstage:backstage /app/node_modules ./node_modules
+COPY --from=build --chown=backstage:backstage /app/packages/backend/dist ./dist
+
+# Copy configuration files
+COPY --chown=backstage:backstage app-config*.yaml ./
+COPY --chown=backstage:backstage catalog/ ./catalog/
+
+# Extract the built bundle
+RUN tar xzf bundle.tar.gz && rm bundle.tar.gz
+
+# Create necessary directories
+RUN mkdir -p /app/logs /tmp/backstage && \
+    chown -R backstage:backstage /app /tmp/backstage
+
+# Set environment variables
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=2048" \
+    BACKSTAGE_CONFIG_app-config.yaml \
+    PORT=7008
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:7008/healthcheck || exit 1
+
+# Switch to non-root user
+USER backstage
+
+# Expose port
+EXPOSE 7008
+
+# Use tini as entrypoint for proper signal handling
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Start the application
+CMD ["node", "packages/backend", "--config", "app-config.yaml", "--config", "app-config.kubernetes.yaml"]
+
+# Labels for better container management
+LABEL \
+    org.opencontainers.image.title="Backstage - BA DevOps Platform" \
+    org.opencontainers.image.description="British Airways Developer Portal powered by Backstage" \
+    org.opencontainers.image.vendor="British Airways" \
+    org.opencontainers.image.authors="Jaime Henao <jaime.andres.henao.arbelaez@ba.com>" \
+    org.opencontainers.image.source="https://github.com/Portfolio-jaime/backstage-solutions" \
+    org.opencontainers.image.documentation="https://backstage.ba.com/docs" \
+    org.label-schema.schema-version="1.0" \
+    org.label-schema.build-date="${BUILD_DATE}" \
+    org.label-schema.vcs-ref="${VCS_REF}" \
+    org.label-schema.version="${VERSION}"

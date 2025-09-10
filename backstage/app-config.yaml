@@ -25,19 +25,31 @@ backend:
   auth:
     keys:
       - secret: ${BACKEND_SECRET}
-  baseUrl: http://localhost:7008
+  baseUrl: ${BACKEND_BASE_URL:-http://localhost:7008}
   listen:
-    port: 7008
-    # Uncomment the following host directive to bind to specific interfaces
-    # host: 127.0.0.1
+    port: ${BACKEND_PORT:-7008}
+    host: ${BACKEND_HOST:-0.0.0.0} # Bind to all interfaces for Kubernetes
+  # Health check endpoint
+  healthCheck:
+    path: /healthcheck
+  # Readiness and liveness probes
+  reading:
+    path: /ready
+  # CSP configuration for production
   csp:
-    connect-src: ["'self'", 'http:', 'https:']
+    connect-src: ["'self'", 'http:', 'https:', '*.ba.com', '*.amazonaws.com']
+    img-src: ["'self'", 'data:', 'https:', '*.gravatar.com', '*.githubusercontent.com']
     # Content-Security-Policy directives follow the Helmet format: https://helmetjs.github.io/#reference
     # Default Helmet Content-Security-Policy values can be removed by setting the key to false
   cors:
-    origin: http://localhost:3001
+    origin: ${FRONTEND_BASE_URL:-http://localhost:3001}
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
     credentials: true
+  # Request timeout and body limits for production
+  request:
+    timeout: 30000
+    bodyParser:
+      limit: '10mb'
   # Production database configuration with PostgreSQL
   database:
     client: pg
@@ -47,8 +59,18 @@ backend:
       user: ${POSTGRES_USER}
       password: ${POSTGRES_PASSWORD}
       database: ${POSTGRES_DB}
-      # Disable SSL for local development
-      ssl: false
+      # SSL configuration for production (disable for local development)
+      ssl: ${POSTGRES_SSL_ENABLED:-false}
+    # Connection pool settings for Kubernetes
+    pool:
+      min: ${POSTGRES_POOL_MIN:-2}
+      max: ${POSTGRES_POOL_MAX:-20}
+      acquireTimeoutMillis: 60000
+      createTimeoutMillis: 30000
+      destroyTimeoutMillis: 5000
+      idleTimeoutMillis: 30000
+      reapIntervalMillis: 1000
+      createRetryIntervalMillis: 200
   # workingDirectory: /tmp # Use this to configure a working directory for the scaffolder, defaults to the OS temp-dir
 
 integrations:
@@ -71,15 +93,31 @@ proxy:
   #     changeOrigin: true
 
 # Reference documentation http://backstage.io/docs/features/techdocs/configuration
-# Note: After experimenting with basic setup, use CI/CD to generate docs
-# and an external cloud storage when deploying TechDocs for production use-case.
-# https://backstage.io/docs/features/techdocs/how-to-guides#how-to-migrate-from-techdocs-basic-to-recommended-deployment-approach
+# Production-ready TechDocs configuration with external storage
 techdocs:
-  builder: 'local' # Alternatives - 'external'
+  builder: ${TECHDOCS_BUILDER:-external} # Use 'external' for production (CI/CD builds)
   generator:
-    runIn: 'docker' # Alternatives - 'local'
+    runIn: ${TECHDOCS_GENERATOR_RUN_IN:-docker} # 'docker' for production
+    dockerImage: ${TECHDOCS_DOCKER_IMAGE:-mkdocs/mkdocs-material:latest}
+    pullImage: true
   publisher:
-    type: 'local' # Alternatives - 'googleGcs' or 'awsS3'. Read documentation for using alternatives.
+    type: ${TECHDOCS_PUBLISHER_TYPE:-awsS3} # 'awsS3' for production
+    # AWS S3 configuration
+    awsS3:
+      bucketName: ${TECHDOCS_S3_BUCKET_NAME}
+      region: ${AWS_REGION:-eu-west-1}
+      accountId: ${AWS_ACCOUNT_ID}
+      # Use AWS IAM roles in Kubernetes (recommended)
+      # credentials:
+      #   accessKeyId: ${AWS_ACCESS_KEY_ID}
+      #   secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+    # Alternative: Google Cloud Storage
+    # googleGcs:
+    #   bucketName: ${TECHDOCS_GCS_BUCKET_NAME}
+    #   projectId: ${GCP_PROJECT_ID}
+  cache:
+    ttl: 300000 # 5 minutes cache
+    readTimeout: 5000
 
 auth:
   # see https://backstage.io/docs/auth/ to learn about auth providers
@@ -110,11 +148,11 @@ catalog:
     github:
       # Course repositories provider
       courseProvider:
-        organization: 'jaime-henao'  # Replace with your GitHub username/org
+        organization: 'Portfolio-jaime'  # Your GitHub organization
         catalogPath: '/catalog-info.yaml'
         filters:
           branch: 'main'
-          repository: '.*backstage.*'  # Only repos with 'backstage' in name
+          repository: '.*'  # Scan all repositories
         schedule:
           frequency: { minutes: 30 }
           timeout: { minutes: 3 }
@@ -179,9 +217,45 @@ catalog:
         - allow: [Template]
 
 kubernetes:
-  # see https://backstage.io/docs/features/kubernetes/configuration for kubernetes configuration options
+  serviceLocatorMethod:
+    type: 'multiTenant'
+  clusterLocatorMethods:
+    - type: 'config'
+      clusters:
+        # Production cluster configuration
+        - url: ${K8S_CLUSTER_URL}
+          name: ${K8S_CLUSTER_NAME:-production}
+          authProvider: ${K8S_AUTH_PROVIDER:-serviceAccount} # or 'aws', 'oidc', 'google'
+          # Service Account Token (recommended for production)
+          serviceAccountToken: ${K8S_SERVICE_ACCOUNT_TOKEN}
+          # Alternative: OIDC configuration
+          # oidcTokenProvider: ${K8S_OIDC_TOKEN_PROVIDER}
+          # AWS EKS configuration
+          # awsAssumeRole: ${K8S_AWS_ASSUME_ROLE}
+          dashboardUrl: ${K8S_DASHBOARD_URL}
+          dashboardApp: ${K8S_DASHBOARD_APP:-kubernetes-dashboard}
+          # Skip TLS verification for internal clusters (not recommended for production)
+          skipTLSVerify: ${K8S_SKIP_TLS_VERIFY:-false}
+          # Custom CA certificate
+          caFile: ${K8S_CA_FILE}
+        # Development/Staging cluster (optional)
+        - url: ${K8S_DEV_CLUSTER_URL}
+          name: development
+          authProvider: serviceAccount
+          serviceAccountToken: ${K8S_DEV_SERVICE_ACCOUNT_TOKEN}
+          skipTLSVerify: true
 
 # see https://backstage.io/docs/permissions/getting-started for more on the permission framework
 permission:
   # setting this to `false` will disable permissions
   enabled: true
+
+# Dashboard configuration from external repository
+dashboard:
+  configSource:
+    type: github
+    repository: Portfolio-jaime/backstage-dashboard-templates
+    path: templates/ba-devops-dashboard/config.yaml
+    branch: main
+    # Refresh configuration from repository every 5 minutes
+    refreshInterval: 300000

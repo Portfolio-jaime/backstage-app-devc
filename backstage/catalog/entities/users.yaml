@@ -7,6 +7,28 @@ spec:
     # Intentional no displayName for testing
     email: jaimehenao8126@outlook.com
     picture: https://api.dicebear.com/7.x/avataaars/svg?seed=Luna&backgroundColor=transparent
-  memberOf: 
+  memberOf:
     - development
     - poc
+    - sre-team
+    - cloud-team
+    - devops-team
+    - dev-team
+    - tools-team
+    - java-team
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: jhenao-nex
+spec:
+  profile:
+    displayName: Nuevo Usuario
+    email: jaime.andres.henao.arbelaez@ba.com
+    picture: https://api.dicebear.com/7.x/avataaars/svg?seed=Alex&backgroundColor=transparent
+  memberOf:
+    - devops-team
+    - cloud-team
+    - sre-team
+    - tools-team
