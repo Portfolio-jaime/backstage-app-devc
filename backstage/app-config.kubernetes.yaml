@@ -1,0 +1,212 @@
+# Kubernetes-specific configuration for Backstage
+# This file contains production-ready settings for Kubernetes deployment
+
+app:
+  title: Backstage - British Airways DevOps Platform
+  baseUrl: ${FRONTEND_BASE_URL}
+  support:
+    url: https://github.com/jaime-henao/backstage-course
+    items:
+      - title: Platform Documentation
+        icon: docs
+        links:
+          - url: ${FRONTEND_BASE_URL}/docs/default/system/platform/
+            title: Platform Overview
+      - title: Support & Issues
+        icon: alert
+        links:
+          - url: ${SUPPORT_URL:-https://jira.ba.com/browse/DEVOPS}
+            title: Create Support Ticket
+
+organization:
+  name: British Airways - DevOps Platform
+
+backend:
+  auth:
+    keys:
+      - secret: ${BACKEND_SECRET}
+  baseUrl: ${BACKEND_BASE_URL}
+  listen:
+    port: 7008
+    host: 0.0.0.0
+  
+  # Health checks for Kubernetes probes
+  healthCheck:
+    path: /healthcheck
+  reading:
+    path: /ready
+    
+  # Production CSP and CORS
+  csp:
+    connect-src: ["'self'", 'https:', '*.ba.com', '*.amazonaws.com']
+    img-src: ["'self'", 'data:', 'https:']
+    script-src: ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
+    
+  cors:
+    origin: ${FRONTEND_BASE_URL}
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+    
+  # Production database with connection pooling
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT:-5432}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      database: ${POSTGRES_DB}
+      ssl:
+        rejectUnauthorized: ${POSTGRES_SSL_REJECT_UNAUTHORIZED:-true}
+        ca: ${POSTGRES_CA_CERT}
+    pool:
+      min: ${POSTGRES_POOL_MIN:-5}
+      max: ${POSTGRES_POOL_MAX:-30}
+      acquireTimeoutMillis: 60000
+      createTimeoutMillis: 30000
+      destroyTimeoutMillis: 5000
+      idleTimeoutMillis: 30000
+
+# Production integrations
+integrations:
+  github:
+    - host: github.com
+      token: ${GITHUB_TOKEN}
+    # British Airways GitHub Enterprise (if applicable)
+    - host: github.ba.com
+      apiBaseUrl: https://github.ba.com/api/v3
+      token: ${GHE_TOKEN}
+
+# Production TechDocs with AWS S3
+techdocs:
+  builder: external
+  generator:
+    runIn: docker
+    dockerImage: mkdocs/mkdocs-material:latest
+    pullImage: true
+  publisher:
+    type: awsS3
+    awsS3:
+      bucketName: ${TECHDOCS_S3_BUCKET_NAME}
+      region: ${AWS_REGION}
+      accountId: ${AWS_ACCOUNT_ID}
+  cache:
+    ttl: 300000
+    readTimeout: 5000
+
+# Production authentication
+auth:
+  environment: production
+  providers:
+    github:
+      production:
+        clientId: ${AUTH_GITHUB_CLIENT_ID}
+        clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
+        signIn:
+          resolvers:
+            - resolver: emailMatchingUserEntityName
+            - resolver: emailLocalPartMatchingUserEntityName
+
+# Production catalog configuration
+catalog:
+  import:
+    entityFilename: catalog-info.yaml
+    pullRequestBranchName: backstage-integration
+  rules:
+    - allow: [Component, System, API, Resource, Location, Template, User, Group, Domain]
+  
+  # Production GitHub provider
+  providers:
+    github:
+      productionProvider:
+        organization: 'Portfolio-jaime'
+        catalogPath: '/catalog-info.yaml'
+        filters:
+          branch: 'main'
+          repository: '.*'
+        schedule:
+          frequency: { minutes: 15 }
+          timeout: { minutes: 3 }
+          initialDelay: { seconds: 30 }
+    
+    # Microsoft Graph for BA users/groups
+    microsoftGraphOrg:
+      target: https://graph.microsoft.com/v1.0
+      tenantId: ${AZURE_TENANT_ID}
+      clientId: ${AZURE_CLIENT_ID}
+      clientSecret: ${AZURE_CLIENT_SECRET}
+      userFilter: accountEnabled eq true
+      groupFilter: securityEnabled eq false
+      schedule:
+        frequency: { hours: 2 }
+        timeout: { minutes: 5 }
+
+  locations:
+    # Production entity locations
+    - type: file
+      target: /app/catalog/entities/systems.yaml
+      rules:
+        - allow: [System, Domain]
+    
+    # Production templates
+    - type: url
+      target: https://github.com/Portfolio-jaime/backstage-software-templates/blob/main/python-app/template.yaml
+      rules:
+        - allow: [Template]
+
+# Production Kubernetes clusters
+kubernetes:
+  serviceLocatorMethod:
+    type: 'multiTenant'
+  clusterLocatorMethods:
+    - type: 'config'
+      clusters:
+        # Production EKS cluster
+        - url: ${K8S_PROD_CLUSTER_URL}
+          name: production-eu-west-1
+          authProvider: aws
+          assumeRole: ${K8S_PROD_ASSUME_ROLE}
+          dashboardUrl: ${K8S_PROD_DASHBOARD_URL}
+          dashboardApp: kubernetes-dashboard
+          skipTLSVerify: false
+          
+        # Staging cluster
+        - url: ${K8S_STAGING_CLUSTER_URL}
+          name: staging-eu-west-1
+          authProvider: aws
+          assumeRole: ${K8S_STAGING_ASSUME_ROLE}
+          skipTLSVerify: false
+
+# Production permissions
+permission:
+  enabled: true
+  policy:
+    # British Airways specific permission policies
+    - permission: catalog.entity.read
+      resourceType: catalog-entity
+      rules:
+        - allow: [user:group/ba-employees]
+    - permission: catalog.entity.create
+      resourceType: catalog-entity
+      rules:
+        - allow: [user:group/devops-team, user:group/platform-team]
+
+# Scaffolder for production
+scaffolder:
+  actions:
+    publish:
+      github:
+        allowedHosts: ['github.com', 'github.ba.com']
+        allowedOrganizations: ['Portfolio-jaime', 'british-airways']
+
+# Production logging
+logging:
+  level: info
+  format: json
+  enableRequestLogging: true
+  
+# Metrics and monitoring
+metrics:
+  enabled: true
+  port: 9090
+  path: /metrics

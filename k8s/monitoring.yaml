@@ -1,0 +1,233 @@
+# ServiceMonitor for Prometheus monitoring
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: backstage-metrics
+  namespace: backstage
+  labels:
+    app: backstage
+    monitoring: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: backstage
+      component: metrics
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+    honorLabels: true
+
+---
+# PrometheusRule for Backstage alerts
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: backstage-alerts
+  namespace: backstage
+  labels:
+    app: backstage
+    monitoring: prometheus
+spec:
+  groups:
+  - name: backstage.rules
+    rules:
+    # High error rate alert
+    - alert: BackstageHighErrorRate
+      expr: |
+        (
+          rate(http_requests_total{job="backstage", code=~"5.."}[5m]) /
+          rate(http_requests_total{job="backstage"}[5m])
+        ) * 100 > 5
+      for: 5m
+      labels:
+        severity: warning
+        service: backstage
+      annotations:
+        summary: "Backstage has high error rate"
+        description: "Backstage error rate is {{ $value }}% for the last 5 minutes"
+        
+    # High response time alert  
+    - alert: BackstageHighResponseTime
+      expr: |
+        histogram_quantile(0.95, 
+          rate(http_request_duration_seconds_bucket{job="backstage"}[5m])
+        ) * 1000 > 1000
+      for: 5m
+      labels:
+        severity: warning
+        service: backstage
+      annotations:
+        summary: "Backstage has high response time"
+        description: "Backstage 95th percentile response time is {{ $value }}ms"
+        
+    # Pod restart alert
+    - alert: BackstagePodRestarts
+      expr: |
+        rate(kube_pod_container_status_restarts_total{
+          namespace="backstage",
+          pod=~"backstage-.*"
+        }[5m]) > 0
+      for: 1m
+      labels:
+        severity: warning
+        service: backstage
+      annotations:
+        summary: "Backstage pod is restarting"
+        description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last 5 minutes"
+        
+    # Database connection alert
+    - alert: BackstageDatabaseDown
+      expr: |
+        up{job="backstage"} == 0 or
+        database_connection_active{job="backstage"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        service: backstage
+      annotations:
+        summary: "Backstage database connection is down"
+        description: "Backstage cannot connect to the database"
+        
+    # Memory usage alert
+    - alert: BackstageHighMemoryUsage
+      expr: |
+        (
+          container_memory_working_set_bytes{
+            namespace="backstage",
+            pod=~"backstage-.*"
+          } /
+          container_spec_memory_limit_bytes{
+            namespace="backstage", 
+            pod=~"backstage-.*"
+          }
+        ) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        service: backstage
+      annotations:
+        summary: "Backstage high memory usage"
+        description: "Backstage pod {{ $labels.pod }} memory usage is {{ $value }}%"
+        
+    # CPU usage alert
+    - alert: BackstageHighCPUUsage
+      expr: |
+        (
+          rate(container_cpu_usage_seconds_total{
+            namespace="backstage",
+            pod=~"backstage-.*"
+          }[5m]) /
+          container_spec_cpu_quota{
+            namespace="backstage",
+            pod=~"backstage-.*"
+          } * 100000
+        ) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        service: backstage
+      annotations:
+        summary: "Backstage high CPU usage"
+        description: "Backstage pod {{ $labels.pod }} CPU usage is {{ $value }}%"
+
+---
+# Grafana Dashboard ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backstage-dashboard
+  namespace: backstage
+  labels:
+    app: backstage
+    grafana_dashboard: "1"
+data:
+  dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Backstage - British Airways DevOps Platform",
+        "tags": ["backstage", "devops", "british-airways"],
+        "timezone": "UTC",
+        "refresh": "30s",
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "panels": [
+          {
+            "id": 1,
+            "title": "Request Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=\"backstage\"}[5m])",
+                "legendFormat": "Requests/sec"
+              }
+            ],
+            "gridPos": {"h": 6, "w": 6, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Error Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=\"backstage\",code=~\"5..\"}[5m]) / rate(http_requests_total{job=\"backstage\"}[5m]) * 100",
+                "legendFormat": "Error %"
+              }
+            ],
+            "gridPos": {"h": 6, "w": 6, "x": 6, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Response Time (95th percentile)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"backstage\"}[5m])) * 1000",
+                "legendFormat": "ms"
+              }
+            ],
+            "gridPos": {"h": 6, "w": 6, "x": 12, "y": 0}
+          },
+          {
+            "id": 4,
+            "title": "Active Pods",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "up{job=\"backstage\"}",
+                "legendFormat": "Pods"
+              }
+            ],
+            "gridPos": {"h": 6, "w": 6, "x": 18, "y": 0}
+          },
+          {
+            "id": 5,
+            "title": "HTTP Request Rate by Code",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=\"backstage\"}[5m])",
+                "legendFormat": "{{code}} - {{method}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6}
+          },
+          {
+            "id": 6,
+            "title": "Memory Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "container_memory_working_set_bytes{namespace=\"backstage\",pod=~\"backstage-.*\"} / 1024 / 1024",
+                "legendFormat": "{{pod}} - Memory (MB)"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6}
+          }
+        ]
+      }
+    }

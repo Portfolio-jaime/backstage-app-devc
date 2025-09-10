@@ -66,6 +66,34 @@ if [ "$DEVCONTAINER_MODE" = true ]; then
     cd /app/backstage
     yarn install
     yarn --cwd packages/backend add @backstage/plugin-scaffolder-backend-module-github
+    
+    # Setup BA Dashboard Plugin
+    echo "🎛️  Setting up BA Dashboard Plugin..."
+    
+    # Install YAML parsing dependencies
+    yarn add js-yaml
+    yarn add --dev @types/js-yaml
+    
+    # Ensure dashboard dependencies are installed
+    yarn workspace app add @backstage/plugin-home @backstage/plugin-search @roadiehq/backstage-plugin-home-markdown recharts || echo "Some dependencies might already exist"
+    
+    # Verify GitHub dashboard repository access
+    echo "🔍 Verifying dashboard repository access..."
+    DASHBOARD_CONFIG_URL="https://raw.githubusercontent.com/Portfolio-jaime/backstage-dashboard-templates/main/templates/ba-devops-dashboard/config.yaml"
+    if curl -f -s "$DASHBOARD_CONFIG_URL" > /dev/null; then
+        echo "✅ Dashboard repository is accessible"
+    else
+        echo "⚠️  Dashboard repository might not be accessible or public"
+        echo "   Make sure https://github.com/Portfolio-jaime/backstage-dashboard-templates is public"
+    fi
+    
+    # Run dashboard setup script if it exists
+    if [ -f "./scripts/setup-dashboard.sh" ]; then
+        echo "🚀 Running dashboard setup..."
+        ./scripts/setup-dashboard.sh
+    else
+        echo "✅ Dashboard setup script not found (manual setup required)"
+    fi
 
     # Inicializa .gitconfig si no existe en el volumen persistente
     if [ ! -f /home/node/.gitconfig ]; then
@@ -92,4 +120,10 @@ echo ""
 echo "📚 Course Documentation:"
 echo "   • Architecture: http://localhost:3001/docs/default/system/course/"
 echo "   • Troubleshooting: http://localhost:3001/docs/default/system/troubleshooting/"
+echo ""
+echo "🎛️  Dashboard Configuration:"
+echo "   • External Config: GitHub backstage-dashboard-templates repository"
+echo "   • Auto-refresh: Every 5 minutes"
+echo "   • Manual setup: yarn setup:dashboard"
+echo "   • Validate config: yarn dashboard:validate"
 echo ""

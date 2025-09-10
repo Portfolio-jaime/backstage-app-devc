@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backstage-config
+  namespace: backstage
+data:
+  # Environment variables
+  NODE_ENV: "production"
+  FRONTEND_BASE_URL: "https://backstage.ba.com"
+  BACKEND_BASE_URL: "https://backstage-api.ba.com"
+  
+  # TechDocs configuration
+  TECHDOCS_BUILDER: "external"
+  TECHDOCS_GENERATOR_RUN_IN: "docker"
+  TECHDOCS_PUBLISHER_TYPE: "awsS3"
+  
+  # Database configuration
+  POSTGRES_SSL_REJECT_UNAUTHORIZED: "true"
+  POSTGRES_POOL_MIN: "5"
+  POSTGRES_POOL_MAX: "30"
+  
+  # Kubernetes configuration
+  K8S_CLUSTER_NAME: "production-eu-west-1"
+  K8S_AUTH_PROVIDER: "aws"
+  K8S_SKIP_TLS_VERIFY: "false"
