@@ -90,23 +90,58 @@ const parseYamlConfig = (yamlContent: string): DashboardConfig => {
     // Extract widget configurations
     const enabledWidgets: {[key: string]: any} = {};
     
+    // Helper function to check if a widget is enabled
+    const isWidgetEnabled = (widgetName: string): boolean => {
+      const widgetSection = yamlContent.split(`${widgetName}:`)[1];
+      if (!widgetSection) return false;
+      
+      const enabledMatch = widgetSection.match(/enabled:\s*(true|false)/);
+      return enabledMatch && enabledMatch[1] === 'true';
+    };
+    
     // Check for GitHub widget
-    if (yamlContent.includes('github:') && yamlContent.includes('enabled: true')) {
+    if (isWidgetEnabled('github')) {
       enabledWidgets.github = { enabled: true, refreshInterval: 300000, maxEvents: 8 };
     }
     
-    // Check for catalog widget
-    if (yamlContent.includes('catalog:') && yamlContent.includes('enabled: true')) {
+    // Check for catalog widget  
+    if (isWidgetEnabled('catalog')) {
       enabledWidgets.catalog = { enabled: true, refreshInterval: 120000, maxServices: 8 };
     }
     
     // Check for other widgets
-    const widgetTypes = ['flightOps', 'costDashboard', 'security', 'systemHealth', 'worldClock'];
+    const widgetTypes = ['flightOps', 'costDashboard', 'security', 'systemHealth'];
     widgetTypes.forEach(widget => {
-      if (yamlContent.includes(`${widget}:`) && yamlContent.includes('enabled: true')) {
+      if (isWidgetEnabled(widget)) {
         enabledWidgets[widget] = { enabled: true };
       }
     });
+    
+    // Special handling for worldClock with timezones
+    if (isWidgetEnabled('worldClock')) {
+      // Extract timezones from YAML
+      const timezones = [];
+      const timezoneMatches = yamlContent.match(/- name: "([^"]+)"\s+timezone: "([^"]+)"\s+flag: "([^"]+)"/g);
+      if (timezoneMatches) {
+        timezoneMatches.forEach(match => {
+          const nameMatch = match.match(/name: "([^"]+)"/);
+          const tzMatch = match.match(/timezone: "([^"]+)"/);
+          const flagMatch = match.match(/flag: "([^"]+)"/);
+          if (nameMatch && tzMatch && flagMatch) {
+            timezones.push({
+              name: nameMatch[1],
+              timezone: tzMatch[1],
+              flag: flagMatch[1]
+            });
+          }
+        });
+      }
+      enabledWidgets.worldClock = { 
+        enabled: true, 
+        refreshInterval: 1000,
+        timezones: timezones 
+      };
+    }
     
     // Extract theme colors
     const primaryColorMatch = yamlContent.match(/primaryColor:\s*["']?([^"'\n]+)["']?/);
@@ -147,20 +182,19 @@ export const useDashboardConfig = (): UseDashboardConfigResult => {
       setLoading(true);
       setError(null);
 
-      console.log('🔄 Fetching dashboard configuration via Backstage proxy...');
-      console.log('📡 Proxy URL:', PROXY_CONFIG_URL);
-      console.log('📡 Original GitHub URL:', GITHUB_CONFIG_URL);
+      console.log('🔄 Fetching dashboard configuration...');
+      console.log('📡 Using direct GitHub URL:', GITHUB_CONFIG_URL);
       
-      const response = await fetch(PROXY_CONFIG_URL, {
+      const response = await fetch(GITHUB_CONFIG_URL, {
         method: 'GET',
         headers: {
           'Accept': 'text/plain',
           'Content-Type': 'text/plain',
         },
       });
-
-      console.log('📥 Response status:', response.status, response.statusText);
-
+      
+      console.log('📥 GitHub response status:', response.status, response.statusText);
+      
       if (!response.ok) {
         throw new Error(`Failed to fetch config: ${response.status} ${response.statusText}`);
       }
