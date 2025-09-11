@@ -89,28 +89,28 @@ const getWelcomeContent = (dashboardId?: string) => {
 
     case 'ba-main':
       return `
-# 🏠 BA Operations Overview
+# 🏠 British Airways Operations Center
 
-**Welcome to British Airways Digital Operations Hub**
+**Welcome to the BA Digital Operations Hub**
 
-Your central command center for all BA digital operations. From here you can access specialized dashboards tailored for different teams and functions.
+Your central command center for monitoring and managing British Airways digital infrastructure and services.
 
-## 🎯 Quick Access to Specialized Dashboards
+## 🎯 Specialized Dashboards
 
-Navigate to the dashboard that matches your role and responsibilities:
+Access role-specific dashboards using the navigation cards below:
 
-- 🚀 **DevOps Operations** - CI/CD, deployments, and system automation
-- ⚙️ **Platform Engineering** - Infrastructure and platform services
-- 🔒 **Security Operations** - Security monitoring and compliance
-- 📊 **Executive Overview** - Business metrics and strategic insights
-- 💻 **Developer Experience** - Development tools and productivity
+- **Operations** - DevOps, deployments, and system automation
+- **Engineering** - Platform infrastructure and services  
+- **Security** - Security monitoring and compliance oversight
+- **Management** - Strategic metrics and business insights
+- **Development** - Developer tools and productivity metrics
 
-## 📊 Current System Status
+## 📊 System Overview
 
-Monitor overall system health and key metrics across all BA digital services.
+Monitor real-time system health, service catalog, and key operational metrics across all BA digital services.
 
 ---
-*"To fly. To serve. To innovate."* - BA Digital Operations
+*"Connecting the world through digital excellence"* - BA Operations Team
 `;
 
     default: // ba-devops
@@ -201,15 +201,6 @@ export const HomePage = () => {
         <HomePageCompanyLogo />
       </Header>
       <Content>
-        {/* Dashboard Selector */}
-        <Box mb={3}>
-          <DashboardSelector
-            availableTemplates={availableTemplates}
-            currentTemplate={currentTemplate}
-            onTemplateChange={switchTemplate}
-            loading={loading}
-          />
-        </Box>
         
         {error && (
           <Paper style={{ padding: 12, marginBottom: 16, backgroundColor: '#fff3e0', border: '1px solid #ff9800' }}>
@@ -229,11 +220,13 @@ export const HomePage = () => {
           </Grid>
           
           <Grid item xs={12} md={8}>
-            <HomePageMarkdown 
-              title="Welcome Aboard!"
-              content={getWelcomeContent(currentTemplate?.id)}
-              path=""
-            />
+            <InfoCard title="Welcome to BA Operations">
+              <Box p={2}>
+                <Typography component="div" style={{ whiteSpace: 'pre-line' }}>
+                  {getWelcomeContent('ba-main').replace(/^#\s+.*$/gm, '').replace(/\*\*(.*?)\*\*/g, '$1').trim()}
+                </Typography>
+              </Box>
+            </InfoCard>
           </Grid>
           
           {spec.widgets.worldClock?.enabled && (
@@ -242,27 +235,57 @@ export const HomePage = () => {
             </Grid>
           )}
 
-          {/* Dashboard Navigation Cards - Only for main dashboard */}
-          {currentTemplate?.id === 'ba-main' && (
-            <Grid item xs={12}>
-              <InfoCard title="🎯 Navigate to Specialized Dashboards">
-                <Box p={2}>
-                  <DashboardCards
-                    dashboards={availableTemplates
-                      .filter(template => template.id !== 'ba-main')
-                      .map(template => ({
-                        id: template.id,
-                        name: template.name,
-                        icon: template.icon || '📊',
-                        description: template.description,
-                        category: template.category,
-                      }))}
-                    onDashboardSelect={switchTemplate}
-                  />
-                </Box>
-              </InfoCard>
-            </Grid>
-          )}
+          {/* Dashboard Navigation Cards - Static list */}
+          <Grid item xs={12}>
+            <InfoCard title="🎯 Navigate to Specialized Dashboards">
+              <Box p={2}>
+                <DashboardCards
+                  dashboards={[
+                    {
+                      id: 'ba-devops',
+                      name: 'BA DevOps Dashboard',
+                      icon: '🚀',
+                      description: 'Operations monitoring and deployment status',
+                      category: 'Operations',
+                    },
+                    {
+                      id: 'ba-platform',
+                      name: 'Platform Engineering',
+                      icon: '⚙️',
+                      description: 'Infrastructure and platform metrics',
+                      category: 'Engineering',
+                    },
+                    {
+                      id: 'ba-security',
+                      name: 'Security Dashboard',
+                      icon: '🔒',
+                      description: 'Security alerts and compliance monitoring',
+                      category: 'Security',
+                    },
+                    {
+                      id: 'ba-management',
+                      name: 'Executive Dashboard',
+                      icon: '📊',
+                      description: 'High-level metrics and business insights',
+                      category: 'Management',
+                    },
+                    {
+                      id: 'ba-developer',
+                      name: 'Developer Experience',
+                      icon: '💻',
+                      description: 'Developer tools and productivity metrics',
+                      category: 'Development',
+                    },
+                  ]}
+                  onDashboardSelect={(dashboardId) => {
+                    // Simple navigation - just change localStorage and reload
+                    localStorage.setItem('selectedDashboard', dashboardId);
+                    window.location.reload();
+                  }}
+                />
+              </Box>
+            </InfoCard>
+          </Grid>
 
           {/* Flight Operations Row */}
           {spec.widgets.flightOps?.enabled && (
@@ -307,7 +330,7 @@ export const HomePage = () => {
           <Grid item xs={12} md={3}>
             <InfoCard title="Quick Actions">
               <Box p={2}>
-                {currentTemplate?.id === 'ba-security' ? (
+                {false ? ( // Simplified - always show main dashboard actions
                   // Security-specific actions
                   <>
                     <Typography variant="body2" gutterBottom>
@@ -329,7 +352,7 @@ export const HomePage = () => {
                       📊 <a href="/security-metrics" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Risk Dashboard</a>
                     </Typography>
                   </>
-                ) : currentTemplate?.id === 'ba-platform' ? (
+                ) : false ? (
                   // Platform-specific actions
                   <>
                     <Typography variant="body2" gutterBottom>
@@ -351,7 +374,7 @@ export const HomePage = () => {
                       🔧 <a href="/automation" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Automation Tools</a>
                     </Typography>
                   </>
-                ) : currentTemplate?.id === 'ba-developer' ? (
+                ) : false ? (
                   // Developer-specific actions
                   <>
                     <Typography variant="body2" gutterBottom>
@@ -373,23 +396,33 @@ export const HomePage = () => {
                       🔄 <a href="/ci-cd" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>CI/CD Pipelines</a>
                     </Typography>
                   </>
-                ) : (
-                  // Default DevOps/Management actions
+                ) : true ? ( // Always show main dashboard actions
+                  // Main dashboard - General actions only
                   <>
                     <Typography variant="body2" gutterBottom>
-                      🚀 <a href="/create" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Create New Service</a>
+                      📊 <a href="/catalog" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Service Catalog</a>
+                    </Typography>
+                    <Typography variant="body2" gutterBottom>
+                      📚 <a href="/docs" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Documentation</a>
+                    </Typography>
+                    <Typography variant="body2" gutterBottom>
+                      🔍 <a href="/search" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Global Search</a>
+                    </Typography>
+                    <Typography variant="body2">
+                      ⚙️ <a href="/settings" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Settings</a>
+                    </Typography>
+                  </>
+                ) : (
+                  // Default DevOps/Management actions for other dashboards
+                  <>
+                    <Typography variant="body2" gutterBottom>
+                      🚀 <a href="/create" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Create Service</a>
                     </Typography>
                     <Typography variant="body2" gutterBottom>
                       📊 <a href="/catalog" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Browse Catalog</a>
                     </Typography>
                     <Typography variant="body2" gutterBottom>
-                      📚 <a href="/docs" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Documentation Hub</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      🔍 <a href="/api-docs" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>API Explorer</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      ⚙️ <a href="/settings" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>User Settings</a>
+                      📚 <a href="/docs" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Documentation</a>
                     </Typography>
                     <Typography variant="body2">
                       📈 <a href="/catalog-graph" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>System Graph</a>
