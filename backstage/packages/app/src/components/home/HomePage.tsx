@@ -18,6 +18,7 @@ import { WorldClock } from './widgets/WorldClock';
 import { LiveCatalogServices } from './widgets/LiveCatalogServices';
 import { HomePageMarkdown } from '@roadiehq/backstage-plugin-home-markdown';
 import { useDashboardConfig } from '../../hooks/useDashboardConfig';
+import { DashboardSelector } from './DashboardSelector';
 
 const welcomeMarkdown = `
 # Welcome to British Airways Developer Portal 🛫
@@ -35,7 +36,14 @@ const welcomeMarkdown = `
 `;
 
 export const HomePage = () => {
-  const { config, loading, error } = useDashboardConfig();
+  const { 
+    config, 
+    loading, 
+    error, 
+    availableTemplates, 
+    currentTemplate, 
+    switchTemplate 
+  } = useDashboardConfig();
 
   if (loading) {
     return (
@@ -97,6 +105,16 @@ export const HomePage = () => {
         <HomePageCompanyLogo />
       </Header>
       <Content>
+        {/* Dashboard Selector */}
+        <Box mb={2}>
+          <DashboardSelector
+            availableTemplates={availableTemplates}
+            currentTemplate={currentTemplate}
+            onTemplateChange={switchTemplate}
+            loading={loading}
+          />
+        </Box>
+        
         {error && (
           <Paper style={{ padding: 12, marginBottom: 16, backgroundColor: '#fff3e0', border: '1px solid #ff9800' }}>
             <Box display="flex" alignItems="center">
@@ -202,8 +220,7 @@ export const HomePage = () => {
         {/* Configuration Info Footer */}
         <Box mt={3} textAlign="center">
           <Typography variant="caption" color="textSecondary">
-            📁 Configuration: {metadata.name} v{metadata.version} • 
-            🔄 Auto-refreshes from GitHub every 5 minutes
+            🔄 Auto-refreshes from GitHub every 5 minutes • v{metadata.version}
             {spec.branding?.motto && (
               <Typography variant="caption" display="block" style={{ fontStyle: 'italic', marginTop: 4 }}>
                 "{spec.branding.motto}"

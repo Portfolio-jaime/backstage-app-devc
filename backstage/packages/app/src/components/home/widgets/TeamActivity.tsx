@@ -58,16 +58,58 @@ export const TeamActivity = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Lista de repositorios de BA para monitorear
-  const baRepos = [
-    'Portfolio-jaime/backstage-solutions',
-    'Portfolio-jaime/Go-app-1',
-    'Portfolio-jaime/python-app-20',
-    'Portfolio-jaime/cli-go-11',
-    'Portfolio-jaime/gitops',
-    'Portfolio-jaime/terra-test-terraform-module',
-    'Portfolio-jaime/vpc-terraform-module'
-  ];
+  // Configuración dinámica de repositorios
+  const [baRepos, setBaRepos] = useState<string[]>([]);
+  const [reposLoaded, setReposLoaded] = useState(false);
+  
+  // Función para cargar repositorios dinámicamente
+  const loadDynamicRepos = async () => {
+    try {
+      const owner = 'Portfolio-jaime';
+      const response = await fetch(`https://api.github.com/users/${owner}/repos?sort=updated&per_page=20`);
+      
+      if (response.ok) {
+        const repos = await response.json();
+        
+        // Filtrar repositorios relevantes
+        const relevantRepos = repos
+          .filter((repo: any) => {
+            // Filtrar solo repos públicos y no archivados
+            return !repo.archived && !repo.private && repo.pushed_at;
+          })
+          .filter((repo: any) => {
+            // Filtrar por temas relevantes o nombres
+            const topics = repo.topics || [];
+            const name = repo.name.toLowerCase();
+            
+            return topics.some((topic: string) => 
+              ['backstage', 'devops', 'kubernetes', 'go', 'terraform', 'gitops'].includes(topic)
+            ) || 
+            ['backstage', 'devops', 'k8s', 'go', 'terraform', 'gitops', 'cluster', 'eks'].some(keyword => 
+              name.includes(keyword)
+            );
+          })
+          .slice(0, 8) // Limitar a 8 repos
+          .map((repo: any) => `${owner}/${repo.name}`);
+        
+        console.log('🔍 Dynamic repos loaded:', relevantRepos);
+        setBaRepos(relevantRepos.length > 0 ? relevantRepos : [`${owner}/backstage-app-devc`]); // Fallback
+      } else {
+        // Fallback a repos conocidos si falla la API
+        console.warn('Using fallback repos');
+        setBaRepos([
+          'Portfolio-jaime/backstage-app-devc',
+          'Portfolio-jaime/GitOps',
+          'Portfolio-jaime/backstage-dashboard-templates'
+        ]);
+      }
+    } catch (error) {
+      console.error('Error loading dynamic repos:', error);
+      setBaRepos(['Portfolio-jaime/backstage-app-devc']);
+    } finally {
+      setReposLoaded(true);
+    }
+  };
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
@@ -127,13 +169,22 @@ export const TeamActivity = () => {
   };
 
   useEffect(() => {
+    // Cargar repos dinámicos primero
+    loadDynamicRepos();
+  }, []);
+
+  useEffect(() => {
+    if (!reposLoaded || baRepos.length === 0) return;
+
     const fetchGitHubActivity = async () => {
       try {
         setLoading(true);
         setError(null);
         
+        console.log('📡 Fetching activity for repos:', baRepos);
+        
         // Usar la API pública de GitHub para eventos de repos
-        const promises = baRepos.slice(0, 3).map(async (repo) => {
+        const promises = baRepos.slice(0, 6).map(async (repo) => {
           try {
             const response = await fetch(`https://api.github.com/repos/${repo}/events`, {
               headers: {
@@ -190,7 +241,7 @@ export const TeamActivity = () => {
     // Actualizar cada 5 minutos
     const interval = setInterval(fetchGitHubActivity, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [reposLoaded, baRepos]);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -247,7 +298,7 @@ export const TeamActivity = () => {
   }
 
   return (
-    <InfoCard title="Team Activity Feed (Live GitHub)" icon={<GroupIcon />}>
+    <InfoCard title={`GitHub Activity (${baRepos.length} repos)`} icon={<GroupIcon />}>
       <List dense>
         {activities.length === 0 ? (
           <Box p={2} textAlign="center">
@@ -299,7 +350,7 @@ export const TeamActivity = () => {
       </List>
       <Box mt={1} textAlign="center">
         <Typography variant="caption" color="primary">
-          🔄 Auto-refreshes every 5 minutes • Live from GitHub API
+          🔄 Auto-refreshes every 5 minutes • Dynamic repos: {baRepos.join(', ').replace(/Portfolio-jaime\//g, '')}
         </Typography>
       </Box>
     </InfoCard>

@@ -2,6 +2,16 @@ import { useState, useEffect } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 
+interface DashboardTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  configPath: string;
+  icon?: string;
+  target: 'devops' | 'platform' | 'security' | 'management' | 'developer';
+}
+
 interface DashboardConfig {
   metadata: {
     name: string;
@@ -41,13 +51,28 @@ interface UseDashboardConfigResult {
   config: DashboardConfig | null;
   loading: boolean;
   error: string | null;
+  availableTemplates: DashboardTemplate[];
+  currentTemplate: DashboardTemplate | null;
+  switchTemplate: (templateId: string) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
-// Use Backstage proxy instead of direct GitHub fetch to avoid CORS
-const PROXY_CONFIG_URL = '/api/dashboard-config/config.yaml';
-const GITHUB_CONFIG_URL = 'https://raw.githubusercontent.com/Portfolio-jaime/backstage-dashboard-templates/main/templates/ba-devops-dashboard/config.yaml';
+// Dashboard templates configuration
+const GITHUB_BASE_URL = 'https://raw.githubusercontent.com/Portfolio-jaime/backstage-dashboard-templates/main';
+const REGISTRY_URL = `${GITHUB_BASE_URL}/registry.yaml`;
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const SELECTED_DASHBOARD_KEY = 'backstage-selected-dashboard';
+
+// Minimal fallback if registry.yaml completely fails
+const EMERGENCY_FALLBACK_TEMPLATE: DashboardTemplate = {
+  id: 'ba-devops',
+  name: 'BA DevOps Dashboard',
+  description: 'Operations monitoring and deployment status',
+  category: 'Operations',
+  configPath: 'templates/ba-devops-dashboard/config.yaml',
+  icon: '🚀',
+  target: 'devops'
+};
 
 // Minimal fallback configuration - only basic structure
 const MINIMAL_FALLBACK: DashboardConfig = {
@@ -176,16 +201,101 @@ export const useDashboardConfig = (): UseDashboardConfigResult => {
   const [config, setConfig] = useState<DashboardConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [availableTemplates, setAvailableTemplates] = useState<DashboardTemplate[]>([EMERGENCY_FALLBACK_TEMPLATE]);
+  const [currentTemplate, setCurrentTemplate] = useState<DashboardTemplate | null>(null);
 
-  const fetchConfig = async (): Promise<void> => {
+  // Get selected dashboard from localStorage or default to first
+  const getSelectedDashboardId = (): string => {
+    return localStorage.getItem(SELECTED_DASHBOARD_KEY) || EMERGENCY_FALLBACK_TEMPLATE.id;
+  };
+
+  // Parse registry YAML content
+  const parseRegistryYaml = (yamlContent: string): DashboardTemplate[] => {
+    try {
+      const templates: DashboardTemplate[] = [];
+      
+      // Extract templates section using regex
+      const templatesMatch = yamlContent.match(/templates:([\s\S]*?)(?=\n\w+:|$)/);
+      if (!templatesMatch) {
+        console.warn('⚠️  No templates section found in registry');
+        return [EMERGENCY_FALLBACK_TEMPLATE];
+      }
+
+      // Parse each template entry
+      const templateBlocks = templatesMatch[1].split(/\n\s*-\s+id:/);
+      
+      templateBlocks.forEach((block, index) => {
+        if (index === 0 && !block.trim().startsWith('id:')) return; // Skip first empty block
+        
+        const templateText = index === 0 ? block : `id:${block}`;
+        
+        // Extract template properties
+        const idMatch = templateText.match(/id:\s*([^\n]+)/);
+        const nameMatch = templateText.match(/name:\s*([^\n]+)/);
+        const descMatch = templateText.match(/description:\s*([^\n]+)/);
+        const categoryMatch = templateText.match(/category:\s*([^\n]+)/);
+        const configPathMatch = templateText.match(/configPath:\s*([^\n]+)/);
+        const iconMatch = templateText.match(/icon:\s*["']([^"']+)["']/);
+        const targetMatch = templateText.match(/target:\s*([^\n]+)/);
+
+        if (idMatch && nameMatch && descMatch && configPathMatch && targetMatch) {
+          templates.push({
+            id: idMatch[1].trim(),
+            name: nameMatch[1].trim().replace(/^["']|["']$/g, ''),
+            description: descMatch[1].trim().replace(/^["']|["']$/g, ''),
+            category: categoryMatch ? categoryMatch[1].trim() : 'General',
+            configPath: configPathMatch[1].trim(),
+            icon: iconMatch ? iconMatch[1] : '📊',
+            target: targetMatch[1].trim() as any
+          });
+        }
+      });
+
+      console.log(`✅ Parsed ${templates.length} templates from registry`);
+      return templates.length > 0 ? templates : [EMERGENCY_FALLBACK_TEMPLATE];
+    } catch (error) {
+      console.error('❌ Error parsing registry YAML:', error);
+      return [EMERGENCY_FALLBACK_TEMPLATE];
+    }
+  };
+
+  // Fetch available templates from registry
+  const fetchTemplates = async (): Promise<DashboardTemplate[]> => {
+    try {
+      console.log('📋 Fetching dashboard registry from GitHub...');
+      const response = await fetch(REGISTRY_URL);
+      
+      if (response.ok) {
+        const registryContent = await response.text();
+        console.log('📋 Registry loaded from GitHub, parsing...');
+        console.log('📄 Registry content preview:', registryContent.substring(0, 200) + '...');
+        
+        const templates = parseRegistryYaml(registryContent);
+        console.log('📋 Available templates:', templates.map(t => t.name));
+        return templates;
+      } else {
+        console.warn('⚠️  Registry fetch failed:', response.status, response.statusText);
+      }
+    } catch (err) {
+      console.warn('⚠️  Registry not accessible:', err);
+    }
+    
+    console.log('🔄 Using emergency fallback template');
+    return [EMERGENCY_FALLBACK_TEMPLATE];
+  };
+
+  // Fetch config for specific template
+  const fetchConfigForTemplate = async (template: DashboardTemplate): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
 
+      const configUrl = `${GITHUB_BASE_URL}/${template.configPath}`;
       console.log('🔄 Fetching dashboard configuration...');
-      console.log('📡 Using direct GitHub URL:', GITHUB_CONFIG_URL);
+      console.log('📡 Template:', template.name);
+      console.log('📡 URL:', configUrl);
       
-      const response = await fetch(GITHUB_CONFIG_URL, {
+      const response = await fetch(configUrl, {
         method: 'GET',
         headers: {
           'Accept': 'text/plain',
@@ -210,27 +320,59 @@ export const useDashboardConfig = (): UseDashboardConfigResult => {
       console.log('🎛️  Widgets enabled:', Object.keys(parsedConfig.spec.widgets).filter(w => parsedConfig.spec.widgets[w]?.enabled));
       
       setConfig(parsedConfig);
+      setCurrentTemplate(template);
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       console.error('❌ Error fetching dashboard config:', errorMessage);
       console.error('🔧 Error details:', err);
-      setError(`Failed to load external config: ${errorMessage}`);
+      setError(`Failed to load template "${template.name}": ${errorMessage}`);
       
       // Use minimal fallback configuration
       console.log('🔄 Using minimal fallback configuration');
       console.log('🎛️  Fallback widgets:', Object.keys(MINIMAL_FALLBACK.spec.widgets));
       setConfig(MINIMAL_FALLBACK);
+      setCurrentTemplate(template);
     } finally {
       setLoading(false);
     }
   };
 
+  // Switch to different template
+  const switchTemplate = async (templateId: string): Promise<void> => {
+    const template = availableTemplates.find(t => t.id === templateId);
+    if (!template) {
+      console.error('❌ Template not found:', templateId);
+      return;
+    }
+
+    localStorage.setItem(SELECTED_DASHBOARD_KEY, templateId);
+    await fetchConfigForTemplate(template);
+  };
+
+  // Initialize
   useEffect(() => {
-    fetchConfig();
+    const initializeDashboard = async () => {
+      // Load available templates
+      const templates = await fetchTemplates();
+      setAvailableTemplates(templates);
+
+      // Load selected dashboard
+      const selectedId = getSelectedDashboardId();
+      const selectedTemplate = templates.find(t => t.id === selectedId) || templates[0];
+      
+      await fetchConfigForTemplate(selectedTemplate);
+    };
+
+    initializeDashboard();
     
-    // Set up auto-refresh
-    const interval = setInterval(fetchConfig, REFRESH_INTERVAL);
+    // Set up auto-refresh for current template
+    const interval = setInterval(() => {
+      if (currentTemplate) {
+        fetchConfigForTemplate(currentTemplate);
+      }
+    }, REFRESH_INTERVAL);
+    
     return () => clearInterval(interval);
   }, []);
 
@@ -238,7 +380,10 @@ export const useDashboardConfig = (): UseDashboardConfigResult => {
     config,
     loading,
     error,
-    refetch: fetchConfig,
+    availableTemplates,
+    currentTemplate,
+    switchTemplate,
+    refetch: () => currentTemplate ? fetchConfigForTemplate(currentTemplate) : Promise.resolve(),
   };
 };
 
