@@ -118,7 +118,38 @@ BA operates across multiple time zones and continents. Use the world clock to co
 "Connecting the world through digital innovation" - BA Operations Team
 `;
 
-    default: // ba-devops
+    case 'ba-devops':
+      return `
+🚀 Welcome to BA DevOps Command Center!
+
+Your mission control for all development operations and deployments across BA's digital infrastructure.
+
+🔄 CONTINUOUS OPERATIONS
+• Monitor CI/CD pipelines and deployment status
+• Track system health and performance metrics
+• Automate infrastructure provisioning and scaling
+• Ensure high availability across all environments
+
+🛠️ DEVOPS TOOLKIT
+• GitHub repositories and code activity
+• System health monitoring and alerts  
+• Service catalog with deployment status
+• Global time coordination for releases
+
+🎯 KEY RESPONSIBILITIES
+• Deployment orchestration and rollbacks
+• Infrastructure as Code management
+• Monitoring and observability setup
+• Incident response and recovery procedures
+
+⚡ OPERATIONAL EXCELLENCE
+Ready to deploy with confidence? Monitor your pipelines, track deployments, and ensure BA's digital services fly smoothly around the globe.
+
+---
+"To fly. To serve. To deploy." - BA DevOps Team
+`;
+
+    default: // fallback
       return `
 # 🚀 BA DevOps Command Center
 
@@ -170,10 +201,10 @@ const getWidgets = (dashboardId: string) => {
       github: { enabled: true }
     },
     'ba-devops': {
-      worldClock: { enabled: true },
-      systemHealth: { enabled: true },
-      catalog: { enabled: true },
-      github: { enabled: true },
+      worldClock: { enabled: true, title: "DevOps Global Operations" },
+      systemHealth: { enabled: true, title: "Infrastructure Health" },
+      catalog: { enabled: true, title: "Services & Deployments" },
+      github: { enabled: true, title: "DevOps Repositories" },
       flightOps: { enabled: false },
       security: { enabled: false }
     },
@@ -214,30 +245,15 @@ const getWidgets = (dashboardId: string) => {
 };
 
 export const HomePage = () => {
-  // Simple static dashboard system
-  const [selectedDashboard, setSelectedDashboard] = React.useState<string>(() => {
-    const stored = localStorage.getItem('selectedDashboard') || 'ba-main';
-    console.log('🎯 Current dashboard:', stored);
-    return stored;
-  });
-
-  // Static dashboard configurations
-  const staticConfig = {
-    metadata: {
-      title: getTitle(selectedDashboard),
-      subtitle: getSubtitle(selectedDashboard),
-      version: "1.0.0"
-    },
-    spec: {
-      widgets: getWidgets(selectedDashboard),
-      layout: { grid: { columns: 12, spacing: 3 } },
-      theme: { primaryColor: '#1976d2', secondaryColor: '#dc004e' }
-    }
-  };
-
-  const config = staticConfig;
-  const loading = false;
-  const error = null;
+  // Back to dynamic system from GitHub
+  const { 
+    config, 
+    loading, 
+    error, 
+    availableTemplates, 
+    currentTemplate, 
+    switchTemplate 
+  } = useDashboardConfig();
 
   if (loading) {
     return (
@@ -321,7 +337,7 @@ export const HomePage = () => {
             <InfoCard title="Welcome to BA Operations">
               <Box p={2}>
                 <Typography component="div" style={{ whiteSpace: 'pre-line' }}>
-                  {getWelcomeContent(selectedDashboard).replace(/^#\s+.*$/gm, '').replace(/\*\*(.*?)\*\*/g, '$1').trim()}
+                  {getWelcomeContent(currentTemplate?.id).replace(/^#\s+.*$/gm, '').replace(/\*\*(.*?)\*\*/g, '$1').trim()}
                 </Typography>
               </Box>
             </InfoCard>
@@ -375,12 +391,7 @@ export const HomePage = () => {
                       category: 'Development',
                     },
                   ]}
-                  onDashboardSelect={(dashboardId) => {
-                    // Update both state and localStorage
-                    localStorage.setItem('selectedDashboard', dashboardId);
-                    setSelectedDashboard(dashboardId);
-                    window.location.reload();
-                  }}
+                  onDashboardSelect={switchTemplate}
                 />
               </Box>
             </InfoCard>
@@ -495,7 +506,23 @@ export const HomePage = () => {
                       🔄 <a href="/ci-cd" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>CI/CD Pipelines</a>
                     </Typography>
                   </>
-                ) : selectedDashboard === 'ba-main' ? (
+                ) : currentTemplate?.id === 'ba-devops' ? (
+                  // DevOps-specific actions
+                  <>
+                    <Typography variant="body2" gutterBottom>
+                      🚀 <a href="/create" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>Deploy Service</a>
+                    </Typography>
+                    <Typography variant="body2" gutterBottom>
+                      📊 <a href="/catalog?filters=tag:deployment" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>Deployments</a>
+                    </Typography>
+                    <Typography variant="body2" gutterBottom>
+                      🔧 <a href="/catalog?filters=tag:pipeline" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>CI/CD Pipelines</a>
+                    </Typography>
+                    <Typography variant="body2">
+                      📈 <a href="/catalog?filters=tag:monitoring" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>Monitoring</a>
+                    </Typography>
+                  </>
+                ) : currentTemplate?.id === 'ba-main' ? (
                   // Main dashboard - General actions only
                   <>
                     <Typography variant="body2" gutterBottom>
