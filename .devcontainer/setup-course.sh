@@ -56,27 +56,40 @@ echo "📁 Creating data directories..."
 mkdir -p /app/backstage/data
 mkdir -p /app/docs/course
 
-# Set proper permissions in DevContainer
 if [ "$DEVCONTAINER_MODE" = true ]; then
     echo "📋 Setting up DevContainer environment..."
     # Ensure node user owns the app directory
     sudo chown -R node:node /app 2>/dev/null || true
+
+    # --- INICIO AUTOMÁTICO DE MINIKUBE ---
+    echo "🚀 Verificando Minikube..."
+    if ! command -v minikube &> /dev/null; then
+        echo "❌ Minikube no está instalado. Revisa el Dockerfile."
+    else
+        if ! minikube status --format '{{.Host}}' | grep -q 'Running'; then
+            echo "⏳ Iniciando Minikube en modo Docker..."
+            minikube start --driver=docker --container-runtime=docker --force || true
+        else
+            echo "✅ Minikube ya está corriendo."
+        fi
+    fi
+    # --- FIN INICIO AUTOMÁTICO DE MINIKUBE ---
+
     # Instala dependencias del proyecto y el módulo de scaffolder backend para integración con GitHub
-    # Esto permite que Backstage pueda crear repositorios y scaffolds usando GitHub desde el backend
     cd /app/backstage
     yarn install
     yarn --cwd packages/backend add @backstage/plugin-scaffolder-backend-module-github
-    
+
     # Setup BA Dashboard Plugin
     echo "🎛️  Setting up BA Dashboard Plugin..."
-    
+
     # Install YAML parsing dependencies
     yarn add js-yaml
     yarn add --dev @types/js-yaml
-    
+
     # Ensure dashboard dependencies are installed
     yarn workspace app add @backstage/plugin-home @backstage/plugin-search @roadiehq/backstage-plugin-home-markdown recharts || echo "Some dependencies might already exist"
-    
+
     # Verify GitHub dashboard repository access
     echo "🔍 Verifying dashboard repository access..."
     DASHBOARD_CONFIG_URL="https://raw.githubusercontent.com/Portfolio-jaime/backstage-dashboard-templates/main/templates/ba-devops-dashboard/config.yaml"
@@ -86,7 +99,7 @@ if [ "$DEVCONTAINER_MODE" = true ]; then
         echo "⚠️  Dashboard repository might not be accessible or public"
         echo "   Make sure https://github.com/Portfolio-jaime/backstage-dashboard-templates is public"
     fi
-    
+
     # Run dashboard setup script if it exists
     if [ -f "./scripts/setup-dashboard.sh" ]; then
         echo "🚀 Running dashboard setup..."

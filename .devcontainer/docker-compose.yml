@@ -44,6 +44,13 @@ services:
       - /Users/jaime.henao/arheanja/Backstage-solutions/backstage-app-devc:/app
       - backstage_data:/app/backstage/data
       - gitconfig_data:/home/node/.config
+      # Persistencia para Minikube y Kubernetes
+      - minikube_data:/root/.minikube
+      - kube_data:/root/.kube
+      - kube_data_node:/home/node/.kube
+      # Persistencia para ArgoCD (si se usa almacenamiento local)
+      - argocd_data:/home/node/.argocd
+    privileged: true
     working_dir: /app
     tty: true
     stdin_open: true
@@ -54,4 +61,12 @@ volumes:
   backstage_data:
     driver: local
   gitconfig_data:
+    driver: local
+  minikube_data:
+    driver: local
+  kube_data:
+    driver: local
+  kube_data_node:
+    driver: local
+  argocd_data:
     driver: local
