@@ -136,15 +136,106 @@ BA operates across multiple time zones and continents. Use the world clock to co
   }
 };
 
+// Static configuration functions
+const getTitle = (dashboardId: string): string => {
+  const titles = {
+    'ba-main': 'British Airways - Operations Overview',
+    'ba-devops': 'BA DevOps Command Center', 
+    'ba-platform': 'BA Platform Engineering',
+    'ba-security': 'BA Security Operations Center',
+    'ba-management': 'BA Executive Dashboard',
+    'ba-developer': 'BA Developer Experience Hub',
+  };
+  return titles[dashboardId as keyof typeof titles] || titles['ba-main'];
+};
+
+const getSubtitle = (dashboardId: string): string => {
+  const subtitles = {
+    'ba-main': 'Central hub for all BA digital operations',
+    'ba-devops': 'Development operations and deployment monitoring', 
+    'ba-platform': 'Infrastructure and platform monitoring',
+    'ba-security': 'Security monitoring and compliance',
+    'ba-management': 'Strategic overview and business intelligence',
+    'ba-developer': 'Developer tools and productivity metrics',
+  };
+  return subtitles[dashboardId as keyof typeof subtitles] || subtitles['ba-main'];
+};
+
+const getWidgets = (dashboardId: string) => {
+  const widgets = {
+    'ba-main': {
+      worldClock: { enabled: true },
+      systemHealth: { enabled: true },
+      catalog: { enabled: true },
+      github: { enabled: true }
+    },
+    'ba-devops': {
+      worldClock: { enabled: true },
+      systemHealth: { enabled: true },
+      catalog: { enabled: true },
+      github: { enabled: true },
+      flightOps: { enabled: false },
+      security: { enabled: false }
+    },
+    'ba-platform': {
+      worldClock: { enabled: true },
+      systemHealth: { enabled: true },
+      catalog: { enabled: true },
+      github: { enabled: true },
+      flightOps: { enabled: false },
+      security: { enabled: false }
+    },
+    'ba-security': {
+      worldClock: { enabled: true },
+      systemHealth: { enabled: true },
+      catalog: { enabled: true },
+      security: { enabled: true },
+      github: { enabled: false },
+      flightOps: { enabled: false }
+    },
+    'ba-management': {
+      worldClock: { enabled: true },
+      systemHealth: { enabled: true },
+      catalog: { enabled: true },
+      github: { enabled: false },
+      flightOps: { enabled: false },
+      security: { enabled: false }
+    },
+    'ba-developer': {
+      worldClock: { enabled: true },
+      catalog: { enabled: true },
+      github: { enabled: true },
+      systemHealth: { enabled: false },
+      flightOps: { enabled: false },
+      security: { enabled: false }
+    }
+  };
+  return widgets[dashboardId as keyof typeof widgets] || widgets['ba-main'];
+};
+
 export const HomePage = () => {
-  const { 
-    config, 
-    loading, 
-    error, 
-    availableTemplates, 
-    currentTemplate, 
-    switchTemplate 
-  } = useDashboardConfig();
+  // Simple static dashboard system
+  const [selectedDashboard, setSelectedDashboard] = React.useState<string>(() => {
+    return localStorage.getItem('selectedDashboard') || 'ba-main';
+  });
+
+  // Static dashboard configurations
+  const staticConfig = {
+    metadata: {
+      title: getTitle(selectedDashboard),
+      subtitle: getSubtitle(selectedDashboard),
+      version: "1.0.0"
+    },
+    spec: {
+      widgets: getWidgets(selectedDashboard),
+      layout: { grid: { columns: 12, spacing: 3 } },
+      theme: { primaryColor: '#1976d2', secondaryColor: '#dc004e' }
+    }
+  };
+
+  const config = staticConfig;
+  const loading = false;
+  const error = null;
 
   if (loading) {
     return (
@@ -228,7 +319,7 @@ export const HomePage = () => {
             <InfoCard title="Welcome to BA Operations">
               <Box p={2}>
                 <Typography component="div" style={{ whiteSpace: 'pre-line' }}>
-                  {getWelcomeContent('ba-main').replace(/^#\s+.*$/gm, '').replace(/\*\*(.*?)\*\*/g, '$1').trim()}
+                  {getWelcomeContent(selectedDashboard).replace(/^#\s+.*$/gm, '').replace(/\*\*(.*?)\*\*/g, '$1').trim()}
                 </Typography>
               </Box>
             </InfoCard>
@@ -240,9 +331,10 @@ export const HomePage = () => {
             </Grid>
           )}
 
-          {/* Dashboard Navigation Cards - Static list */}
-          <Grid item xs={12}>
-            <InfoCard title="🎯 Navigate to Specialized Dashboards">
+          {/* Dashboard Navigation Cards - Only show in main dashboard */}
+          {selectedDashboard === 'ba-main' && (
+            <Grid item xs={12}>
+              <InfoCard title="🎯 Navigate to Specialized Dashboards">
               <Box p={2}>
                 <DashboardCards
                   dashboards={[
@@ -283,14 +375,16 @@ export const HomePage = () => {
                     },
                   ]}
                   onDashboardSelect={(dashboardId) => {
-                    // Simple navigation - just change localStorage and reload
+                    // Update both state and localStorage
                     localStorage.setItem('selectedDashboard', dashboardId);
+                    setSelectedDashboard(dashboardId);
                     window.location.reload();
                   }}
                 />
               </Box>
             </InfoCard>
           </Grid>
+          )}
 
           {/* Flight Operations Row */}
           {spec.widgets.flightOps?.enabled && (
@@ -401,7 +495,7 @@ export const HomePage = () => {
                       🔄 <a href="/ci-cd" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>CI/CD Pipelines</a>
                     </Typography>
                   </>
-                ) : true ? ( // Always show main dashboard actions
+                ) : selectedDashboard === 'ba-main' ? (
                   // Main dashboard - General actions only
                   <>
                     <Typography variant="body2" gutterBottom>
