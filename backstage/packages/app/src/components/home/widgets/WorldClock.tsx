@@ -36,6 +36,7 @@ export const WorldClock = () => {
     { location: 'Hong Kong', timezone: 'Asia/Hong_Kong', flag: '🇭🇰' },
     { location: 'Sydney', timezone: 'Australia/Sydney', flag: '🇦🇺' },
     { location: 'Mumbai', timezone: 'Asia/Kolkata', flag: '🇮🇳' },
+    { location: 'Bogota', timezone: 'America/Bogota', flag: '🇨🇴' },
   ];
 
   useEffect(() => {
