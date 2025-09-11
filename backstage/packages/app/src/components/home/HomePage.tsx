@@ -216,7 +216,9 @@ const getWidgets = (dashboardId: string) => {
 export const HomePage = () => {
   // Simple static dashboard system
   const [selectedDashboard, setSelectedDashboard] = React.useState<string>(() => {
-    return localStorage.getItem('selectedDashboard') || 'ba-main';
+    const stored = localStorage.getItem('selectedDashboard') || 'ba-main';
+    console.log('🎯 Current dashboard:', stored);
+    return stored;
   });
 
   // Static dashboard configurations
@@ -331,10 +333,9 @@ export const HomePage = () => {
             </Grid>
           )}
 
-          {/* Dashboard Navigation Cards - Only show in main dashboard */}
-          {selectedDashboard === 'ba-main' && (
-            <Grid item xs={12}>
-              <InfoCard title="🎯 Navigate to Specialized Dashboards">
+          {/* Dashboard Navigation Cards - Always show for now */}
+          <Grid item xs={12}>
+            <InfoCard title="🎯 Navigate to Specialized Dashboards">
               <Box p={2}>
                 <DashboardCards
                   dashboards={[
@@ -384,7 +385,6 @@ export const HomePage = () => {
               </Box>
             </InfoCard>
           </Grid>
-          )}
 
           {/* Flight Operations Row */}
           {spec.widgets.flightOps?.enabled && (
