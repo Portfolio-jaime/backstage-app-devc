@@ -366,6 +366,8 @@ export const useDashboardConfig = (): UseDashboardConfigResult => {
         selectedTemplate = templates.find(t => t.id === 'ba-main') || templates[0];
       }
       
+      console.log(`🎯 Loading dashboard: ${selectedTemplate.name} (${selectedTemplate.id})`);
+      
       await fetchConfigForTemplate(selectedTemplate);
     };
 
