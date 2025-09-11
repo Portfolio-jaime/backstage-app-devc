@@ -9,6 +9,7 @@ import BugReportIcon from '@material-ui/icons/BugReport';
 import PublishIcon from '@material-ui/icons/Publish';
 import { githubAuthApiRef } from '@backstage/core-plugin-api';
 import { useApi } from '@backstage/core-plugin-api';
+import { useDashboardConfig } from '../../../hooks/useDashboardConfig';
 
 const useStyles = makeStyles(theme => ({
   listItem: {
@@ -57,12 +58,13 @@ export const TeamActivity = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { config, currentTemplate } = useDashboardConfig();
   
   // Configuración dinámica de repositorios
   const [baRepos, setBaRepos] = useState<string[]>([]);
   const [reposLoaded, setReposLoaded] = useState(false);
   
-  // Función para cargar repositorios dinámicamente
+  // Función para cargar repositorios dinámicamente basado en la configuración del dashboard
   const loadDynamicRepos = async () => {
     try {
       const owner = 'Portfolio-jaime';
@@ -71,6 +73,14 @@ export const TeamActivity = () => {
       if (response.ok) {
         const repos = await response.json();
         
+        // Obtener filtros específicos del dashboard actual
+        const githubConfig = config?.spec?.widgets?.github;
+        const keywords = githubConfig?.filters?.keywords || ['backstage', 'devops'];
+        const topics = githubConfig?.filters?.topics || ['backstage', 'devops'];
+        const maxRepos = githubConfig?.filters?.maxRepos || 8;
+        
+        console.log(`🎯 Filtering repos for ${currentTemplate?.name} dashboard:`, { keywords, topics });
+        
         // Filtrar repositorios relevantes
         const relevantRepos = repos
           .filter((repo: any) => {
@@ -78,24 +88,28 @@ export const TeamActivity = () => {
             return !repo.archived && !repo.private && repo.pushed_at;
           })
           .filter((repo: any) => {
-            // Filtrar por temas relevantes o nombres
-            const topics = repo.topics || [];
+            // Filtrar por temas relevantes o nombres usando la configuración del dashboard
+            const repoTopics = repo.topics || [];
             const name = repo.name.toLowerCase();
             
-            return topics.some((topic: string) => 
-              ['backstage', 'devops', 'kubernetes', 'go', 'terraform', 'gitops'].includes(topic)
-            ) || 
-            ['backstage', 'devops', 'k8s', 'go', 'terraform', 'gitops', 'cluster', 'eks'].some(keyword => 
-              name.includes(keyword)
+            const matchesTopics = repoTopics.some((topic: string) => 
+              topics.some((configTopic: string) => 
+                topic.toLowerCase().includes(configTopic.toLowerCase())
+              )
             );
+            
+            const matchesKeywords = keywords.some((keyword: string) => 
+              name.includes(keyword.toLowerCase())
+            );
+            
+            return matchesTopics || matchesKeywords;
           })
-          .slice(0, 8) // Limitar a 8 repos
+          .slice(0, maxRepos)
           .map((repo: any) => `${owner}/${repo.name}`);
         
-        console.log('🔍 Dynamic repos loaded:', relevantRepos);
+        console.log(`🔍 Found ${relevantRepos.length} matching repos:`, relevantRepos);
         setBaRepos(relevantRepos.length > 0 ? relevantRepos : [`${owner}/backstage-app-devc`]); // Fallback
       } else {
-        // Fallback a repos conocidos si falla la API
         console.warn('Using fallback repos');
         setBaRepos([
           'Portfolio-jaime/backstage-app-devc',
@@ -169,9 +183,11 @@ export const TeamActivity = () => {
   };
 
   useEffect(() => {
-    // Cargar repos dinámicos primero
-    loadDynamicRepos();
-  }, []);
+    // Cargar repos dinámicos cuando cambie la configuración
+    if (config) {
+      loadDynamicRepos();
+    }
+  }, [config, currentTemplate]);
 
   useEffect(() => {
     if (!reposLoaded || baRepos.length === 0) return;
@@ -298,7 +314,10 @@ export const TeamActivity = () => {
   }
 
   return (
-    <InfoCard title={`GitHub Activity (${baRepos.length} repos)`} icon={<GroupIcon />}>
+    <InfoCard 
+      title={config?.spec?.widgets?.github?.title || `GitHub Activity (${baRepos.length} repos)`} 
+      icon={<GroupIcon />}
+    >
       <List dense>
         {activities.length === 0 ? (
           <Box p={2} textAlign="center">

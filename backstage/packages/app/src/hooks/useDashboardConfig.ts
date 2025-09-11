@@ -204,10 +204,6 @@ export const useDashboardConfig = (): UseDashboardConfigResult => {
   const [availableTemplates, setAvailableTemplates] = useState<DashboardTemplate[]>([EMERGENCY_FALLBACK_TEMPLATE]);
   const [currentTemplate, setCurrentTemplate] = useState<DashboardTemplate | null>(null);
 
-  // Get selected dashboard from localStorage or default to first
-  const getSelectedDashboardId = (): string => {
-    return localStorage.getItem(SELECTED_DASHBOARD_KEY) || EMERGENCY_FALLBACK_TEMPLATE.id;
-  };
 
   // Parse registry YAML content
   const parseRegistryYaml = (yamlContent: string): DashboardTemplate[] => {
@@ -357,9 +353,18 @@ export const useDashboardConfig = (): UseDashboardConfigResult => {
       const templates = await fetchTemplates();
       setAvailableTemplates(templates);
 
-      // Load selected dashboard
-      const selectedId = getSelectedDashboardId();
-      const selectedTemplate = templates.find(t => t.id === selectedId) || templates[0];
+      // Load selected dashboard - fix: use templates directly instead of availableTemplates
+      const storedId = localStorage.getItem(SELECTED_DASHBOARD_KEY);
+      let selectedTemplate;
+      
+      if (storedId) {
+        selectedTemplate = templates.find(t => t.id === storedId);
+      }
+      
+      // If no stored selection or stored template not found, default to ba-main
+      if (!selectedTemplate) {
+        selectedTemplate = templates.find(t => t.id === 'ba-main') || templates[0];
+      }
       
       await fetchConfigForTemplate(selectedTemplate);
     };
