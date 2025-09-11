@@ -28,6 +28,26 @@ const COLORS = ['#4caf50', '#ff9800', '#f44336', '#2196f3'];
 
 export const SystemHealth = () => {
   const classes = useStyles();
+
+  // Show simple message instead of simulated data
+  return (
+    <InfoCard title="System Health Overview" icon={<AssessmentIcon />}>
+      <Box p={3} textAlign="center">
+        <Typography variant="h6" gutterBottom>
+          🔧 System Monitoring
+        </Typography>
+        <Typography variant="body1" color="textSecondary" gutterBottom>
+          Real-time system health monitoring is being configured.
+        </Typography>
+        <Typography variant="body2" color="textSecondary">
+          Connect your monitoring tools to display actual system metrics here.
+        </Typography>
+      </Box>
+    </InfoCard>
+  );
+
+  // Original simulated data code below (commented out)
+  /*
   
   const healthData = [
     { name: 'Healthy', value: 78, color: '#4caf50' },
@@ -129,4 +149,5 @@ export const SystemHealth = () => {
       </Grid>
     </InfoCard>
   );
+  */
 };

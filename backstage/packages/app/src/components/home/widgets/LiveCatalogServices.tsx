@@ -49,9 +49,9 @@ const useStyles = makeStyles(theme => ({
 
 interface ServiceHealth {
   name: string;
-  status: 'healthy' | 'warning' | 'error';
-  uptime: number;
-  responseTime: number;
+  status: 'healthy' | 'warning' | 'error' | 'unknown';
+  uptime: number | null;
+  responseTime: number | null;
 }
 
 export const LiveCatalogServices = () => {
@@ -67,22 +67,14 @@ export const LiveCatalogServices = () => {
     resources: 0,
   });
 
-  // Simulated health data - en producción esto vendría de tu monitoring
+  // No simulated health data - only show real catalog data
   const getServiceHealth = (entityName: string): ServiceHealth => {
-    const healthData: { [key: string]: ServiceHealth } = {
-      'gitops': { name: 'gitops', status: 'healthy', uptime: 99.9, responseTime: 45 },
-      'go-cli': { name: 'go-cli', status: 'healthy', uptime: 99.7, responseTime: 120 },
-      'python-app-1': { name: 'python-app-1', status: 'warning', uptime: 98.5, responseTime: 200 },
-      'test-1': { name: 'test-1', status: 'healthy', uptime: 99.8, responseTime: 85 },
-      'argocd-solutions': { name: 'argocd-solutions', status: 'healthy', uptime: 99.6, responseTime: 65 },
-      'test1': { name: 'test1', status: 'warning', uptime: 97.2, responseTime: 180 },
-    };
-    
-    return healthData[entityName] || { 
+    // Return null health data - no fake metrics
+    return { 
       name: entityName, 
-      status: 'healthy', 
-      uptime: 99.0 + Math.random() * 0.9, 
-      responseTime: 50 + Math.random() * 100 
+      status: 'unknown', 
+      uptime: null, 
+      responseTime: null 
     };
   };
 
@@ -240,16 +232,10 @@ export const LiveCatalogServices = () => {
                         />
                       </Box>
                       <div className={classes.healthIndicator}>
-                        {getHealthIcon(health.status)}
+                        {getHealthIcon('unknown')}
                         <Typography variant="caption" style={{ marginLeft: 8 }}>
-                          {health.uptime.toFixed(1)}% uptime • {Math.round(health.responseTime)}ms
+                          Real catalog data - no synthetic metrics
                         </Typography>
-                        <Chip 
-                          label={health.status.toUpperCase()} 
-                          size="small" 
-                          style={{ marginLeft: 8 }}
-                          color={getHealthColor(health.status)}
-                        />
                       </div>
                     </div>
                   }

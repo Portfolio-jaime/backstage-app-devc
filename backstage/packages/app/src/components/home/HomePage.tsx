@@ -89,28 +89,33 @@ const getWelcomeContent = (dashboardId?: string) => {
 
     case 'ba-main':
       return `
-# 🏠 British Airways Operations Center
+Welcome to British Airways Digital Operations Hub! ✈️
 
-**Welcome to the BA Digital Operations Hub**
+Your central command center for monitoring and managing all BA digital infrastructure and services worldwide.
 
-Your central command center for monitoring and managing British Airways digital infrastructure and services.
+🎯 SPECIALIZED DASHBOARDS
+Navigate to the dashboard that matches your role using the cards below:
 
-## 🎯 Specialized Dashboards
+🚀 Operations - DevOps, deployments, and system automation
+⚙️ Engineering - Platform infrastructure and cloud services  
+🔒 Security - Security monitoring and compliance oversight
+📊 Management - Strategic metrics and business insights
+💻 Development - Developer tools and productivity metrics
 
-Access role-specific dashboards using the navigation cards below:
+📊 SYSTEM OVERVIEW
+• Real-time system health monitoring
+• Complete service catalog with live status
+• Global operations timezones
+• GitHub activity and project updates
+• Quick access to essential tools
 
-- **Operations** - DevOps, deployments, and system automation
-- **Engineering** - Platform infrastructure and services  
-- **Security** - Security monitoring and compliance oversight
-- **Management** - Strategic metrics and business insights
-- **Development** - Developer tools and productivity metrics
+🌍 GLOBAL REACH
+BA operates across multiple time zones and continents. Use the world clock to coordinate with teams in London, Madrid, New York, Singapore, Mumbai, and more.
 
-## 📊 System Overview
-
-Monitor real-time system health, service catalog, and key operational metrics across all BA digital services.
+✈️ Ready for takeoff? Select your dashboard above and start monitoring BA's digital excellence.
 
 ---
-*"Connecting the world through digital excellence"* - BA Operations Team
+"Connecting the world through digital innovation" - BA Operations Team
 `;
 
     default: // ba-devops
