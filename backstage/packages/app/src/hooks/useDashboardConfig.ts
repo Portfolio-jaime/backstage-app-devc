@@ -19,6 +19,15 @@ interface DashboardConfig {
     subtitle: string;
     version: string;
   };
+  content?: {
+    welcomeMessage?: string | null;
+    quickActions?: Array<{
+      title: string;
+      icon: string;
+      url: string;
+      description: string;
+    }>;
+  };
   spec: {
     widgets: {
       [key: string]: any;
@@ -101,6 +110,32 @@ const MINIMAL_FALLBACK: DashboardConfig = {
   },
 };
 
+// Helper function to parse quick actions from YAML
+const parseQuickActions = (actionsText: string) => {
+  const actions = [];
+  const actionBlocks = actionsText.split(/\n\s*-\s+/);
+  
+  for (const block of actionBlocks) {
+    if (!block.trim()) continue;
+    
+    const titleMatch = block.match(/title:\s*["']?([^"'\n]+)["']?/);
+    const iconMatch = block.match(/icon:\s*["']?([^"'\n]+)["']?/);
+    const urlMatch = block.match(/url:\s*["']?([^"'\n]+)["']?/);
+    const descMatch = block.match(/description:\s*["']?([^"'\n]+)["']?/);
+    
+    if (titleMatch && urlMatch) {
+      actions.push({
+        title: titleMatch[1],
+        icon: iconMatch ? iconMatch[1] : '🔗',
+        url: urlMatch[1],
+        description: descMatch ? descMatch[1] : ''
+      });
+    }
+  }
+  
+  return actions;
+};
+
 // Enhanced YAML parser for configuration
 const parseYamlConfig = (yamlContent: string): DashboardConfig => {
   try {
@@ -111,6 +146,14 @@ const parseYamlConfig = (yamlContent: string): DashboardConfig => {
     const subtitleMatch = yamlContent.match(/subtitle:\s*["']?([^"'\n]+)["']?/);
     const versionMatch = yamlContent.match(/version:\s*["']?([^"'\n]+)["']?/);
     const nameMatch = yamlContent.match(/name:\s*([^\n]+)/);
+    
+    // Extract content section
+    const welcomeMessageMatch = yamlContent.match(/welcome:\s*\n\s*title:.*?\n\s*message:\s*\|\s*\n([\s\S]*?)(?=\n\s*quickActions:|$)/);
+    const welcomeMessage = welcomeMessageMatch ? welcomeMessageMatch[1].replace(/^\s{8}/gm, '').trim() : null;
+    
+    // Extract quick actions
+    const quickActionsSection = yamlContent.match(/quickActions:\s*\n([\s\S]*?)(?=\n\w+:|$)/);
+    const quickActions = quickActionsSection ? parseQuickActions(quickActionsSection[1]) : [];
     
     // Extract widget configurations
     const enabledWidgets: {[key: string]: any} = {};
@@ -178,6 +221,10 @@ const parseYamlConfig = (yamlContent: string): DashboardConfig => {
         title: titleMatch ? titleMatch[1].trim() : MINIMAL_FALLBACK.metadata.title,
         subtitle: subtitleMatch ? subtitleMatch[1].trim() : MINIMAL_FALLBACK.metadata.subtitle,
         version: versionMatch ? versionMatch[1].trim() : MINIMAL_FALLBACK.metadata.version,
+      },
+      content: {
+        welcomeMessage: welcomeMessage || null,
+        quickActions: quickActions || [],
       },
       spec: {
         widgets: Object.keys(enabledWidgets).length > 0 ? enabledWidgets : MINIMAL_FALLBACK.spec.widgets,

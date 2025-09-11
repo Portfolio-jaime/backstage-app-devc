@@ -337,7 +337,7 @@ export const HomePage = () => {
             <InfoCard title="Welcome to BA Operations">
               <Box p={2}>
                 <Typography component="div" style={{ whiteSpace: 'pre-line' }}>
-                  {getWelcomeContent(currentTemplate?.id).replace(/^#\s+.*$/gm, '').replace(/\*\*(.*?)\*\*/g, '$1').trim()}
+                  {config?.content?.welcomeMessage || getWelcomeContent(currentTemplate?.id).replace(/^#\s+.*$/gm, '').replace(/\*\*(.*?)\*\*/g, '$1').trim()}
                 </Typography>
               </Box>
             </InfoCard>
@@ -440,7 +440,14 @@ export const HomePage = () => {
           <Grid item xs={12} md={3}>
             <InfoCard title="Quick Actions">
               <Box p={2}>
-                {false ? ( // Simplified - always show main dashboard actions
+                {config?.content?.quickActions && config.content.quickActions.length > 0 ? (
+                  // Dynamic quick actions from YAML
+                  config.content.quickActions.map((action, index) => (
+                    <Typography key={index} variant="body2" gutterBottom={index < config.content.quickActions!.length - 1}>
+                      {action.icon} <a href={action.url} style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>{action.title}</a>
+                    </Typography>
+                  ))
+                ) : false ? ( // Fallback hardcoded actions
                   // Security-specific actions
                   <>
                     <Typography variant="body2" gutterBottom>
