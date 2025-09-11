@@ -21,228 +21,21 @@ import { useDashboardConfig } from '../../hooks/useDashboardConfig';
 import { DashboardSelector } from './DashboardSelector';
 import { DashboardCards } from './DashboardCards';
 
+// Fallback welcome content if YAML doesn't have content
 const getWelcomeContent = (dashboardId?: string) => {
-  switch (dashboardId) {
-    case 'ba-security':
-      return `
-# 🔒 BA Security Operations Center
+  return `
+Welcome to BA Operations Dashboard
 
-**Your command center for security monitoring and compliance**
+This dashboard is loading its content from the GitHub configuration repository.
+If you see this message, the dynamic content system is not working properly.
 
-- 🛡️ **Threat Detection**: Real-time security alerts and monitoring
-- 🔍 **Vulnerability Management**: Scan results and remediation tracking  
-- 📋 **Compliance**: Regulatory compliance status and audits
-- 🔐 **Access Control**: Identity and access management oversight
-- 📊 **Security Metrics**: Risk assessment and security KPIs
+Please check the dashboard configuration in the backstage-dashboard-templates repository.
 
 ---
-*"Security first, always vigilant."* - BA Security Team
+BA Digital Operations Team
 `;
-
-    case 'ba-platform':
-      return `
-# ⚙️ BA Platform Engineering Hub
-
-**Infrastructure and platform operations command center**
-
-- 🏗️ **Infrastructure**: Cloud resources and cluster management
-- 🚀 **Deployments**: CI/CD pipelines and release management
-- 📊 **Monitoring**: System health and performance metrics
-- 🔧 **Automation**: Infrastructure as Code and automation tools
-- 🏢 **Multi-Cloud**: AWS, Azure, and GCP resource management
-
----
-*"Building the foundation for digital aviation."* - BA Platform Team
-`;
-
-    case 'ba-management':
-      return `
-# 📊 BA Executive Dashboard
-
-**Strategic overview and business intelligence**
-
-- 💰 **Cost Management**: IT spend and budget optimization
-- 📈 **Performance Metrics**: Business KPIs and operational metrics
-- 🎯 **Strategic Initiatives**: Progress on key business objectives
-- 👥 **Team Performance**: Development velocity and delivery metrics
-- 📋 **Governance**: Compliance and risk management overview
-
----
-*"Strategic insight drives operational excellence."* - BA Leadership
-`;
-
-    case 'ba-developer':
-      return `
-# 💻 BA Developer Experience
-
-**Your toolkit for efficient software development**
-
-- 🛠️ **Development Tools**: APIs, libraries, and development resources
-- 📚 **Documentation**: Technical guides and best practices
-- 🧪 **Testing**: Quality assurance and testing frameworks
-- 🔄 **CI/CD**: Build pipelines and deployment automation
-- 🎨 **Templates**: Service scaffolding and code templates
-
----
-*"Empowering developers to build the future of aviation."* - BA Dev Team
-`;
-
-    case 'ba-main':
-      return `
-Welcome to British Airways Digital Operations Hub! ✈️
-
-Your central command center for monitoring and managing all BA digital infrastructure and services worldwide.
-
-🎯 SPECIALIZED DASHBOARDS
-Navigate to the dashboard that matches your role using the cards below:
-
-🚀 Operations - DevOps, deployments, and system automation
-⚙️ Engineering - Platform infrastructure and cloud services  
-🔒 Security - Security monitoring and compliance oversight
-📊 Management - Strategic metrics and business insights
-💻 Development - Developer tools and productivity metrics
-
-📊 SYSTEM OVERVIEW
-• Real-time system health monitoring
-• Complete service catalog with live status
-• Global operations timezones
-• GitHub activity and project updates
-• Quick access to essential tools
-
-🌍 GLOBAL REACH
-BA operates across multiple time zones and continents. Use the world clock to coordinate with teams in London, Madrid, New York, Singapore, Mumbai, and more.
-
-✈️ Ready for takeoff? Select your dashboard above and start monitoring BA's digital excellence.
-
----
-"Connecting the world through digital innovation" - BA Operations Team
-`;
-
-    case 'ba-devops':
-      return `
-🚀 Welcome to BA DevOps Command Center!
-
-Your mission control for all development operations and deployments across BA's digital infrastructure.
-
-🔄 CONTINUOUS OPERATIONS
-• Monitor CI/CD pipelines and deployment status
-• Track system health and performance metrics
-• Automate infrastructure provisioning and scaling
-• Ensure high availability across all environments
-
-🛠️ DEVOPS TOOLKIT
-• GitHub repositories and code activity
-• System health monitoring and alerts  
-• Service catalog with deployment status
-• Global time coordination for releases
-
-🎯 KEY RESPONSIBILITIES
-• Deployment orchestration and rollbacks
-• Infrastructure as Code management
-• Monitoring and observability setup
-• Incident response and recovery procedures
-
-⚡ OPERATIONAL EXCELLENCE
-Ready to deploy with confidence? Monitor your pipelines, track deployments, and ensure BA's digital services fly smoothly around the globe.
-
----
-"To fly. To serve. To deploy." - BA DevOps Team
-`;
-
-    default: // fallback
-      return `
-# 🚀 BA DevOps Command Center
-
-**Your central hub for development operations**
-
-- 🚀 **Deployments**: CI/CD pipelines and release status
-- 📊 **Monitoring**: Real-time system health and metrics  
-- 🔧 **Automation**: Infrastructure automation and tooling
-- 📚 **Documentation**: DevOps guides and best practices
-- 🔍 **Observability**: Logging, tracing, and alerting
-
----
-*"To fly. To serve. To deploy."* - BA DevOps Team
-`;
-  }
 };
 
-// Static configuration functions
-const getTitle = (dashboardId: string): string => {
-  const titles = {
-    'ba-main': 'British Airways - Operations Overview',
-    'ba-devops': 'BA DevOps Command Center', 
-    'ba-platform': 'BA Platform Engineering',
-    'ba-security': 'BA Security Operations Center',
-    'ba-management': 'BA Executive Dashboard',
-    'ba-developer': 'BA Developer Experience Hub',
-  };
-  return titles[dashboardId as keyof typeof titles] || titles['ba-main'];
-};
-
-const getSubtitle = (dashboardId: string): string => {
-  const subtitles = {
-    'ba-main': 'Central hub for all BA digital operations',
-    'ba-devops': 'Development operations and deployment monitoring', 
-    'ba-platform': 'Infrastructure and platform monitoring',
-    'ba-security': 'Security monitoring and compliance',
-    'ba-management': 'Strategic overview and business intelligence',
-    'ba-developer': 'Developer tools and productivity metrics',
-  };
-  return subtitles[dashboardId as keyof typeof subtitles] || subtitles['ba-main'];
-};
-
-const getWidgets = (dashboardId: string) => {
-  const widgets = {
-    'ba-main': {
-      worldClock: { enabled: true },
-      systemHealth: { enabled: true },
-      catalog: { enabled: true },
-      github: { enabled: true }
-    },
-    'ba-devops': {
-      worldClock: { enabled: true, title: "DevOps Global Operations" },
-      systemHealth: { enabled: true, title: "Infrastructure Health" },
-      catalog: { enabled: true, title: "Services & Deployments" },
-      github: { enabled: true, title: "DevOps Repositories" },
-      flightOps: { enabled: false },
-      security: { enabled: false }
-    },
-    'ba-platform': {
-      worldClock: { enabled: true },
-      systemHealth: { enabled: true },
-      catalog: { enabled: true },
-      github: { enabled: true },
-      flightOps: { enabled: false },
-      security: { enabled: false }
-    },
-    'ba-security': {
-      worldClock: { enabled: true },
-      systemHealth: { enabled: true },
-      catalog: { enabled: true },
-      security: { enabled: true },
-      github: { enabled: false },
-      flightOps: { enabled: false }
-    },
-    'ba-management': {
-      worldClock: { enabled: true },
-      systemHealth: { enabled: true },
-      catalog: { enabled: true },
-      github: { enabled: false },
-      flightOps: { enabled: false },
-      security: { enabled: false }
-    },
-    'ba-developer': {
-      worldClock: { enabled: true },
-      catalog: { enabled: true },
-      github: { enabled: true },
-      systemHealth: { enabled: false },
-      flightOps: { enabled: false },
-      security: { enabled: false }
-    }
-  };
-  return widgets[dashboardId as keyof typeof widgets] || widgets['ba-main'];
-};
 
 export const HomePage = () => {
   // Back to dynamic system from GitHub
@@ -447,118 +240,17 @@ export const HomePage = () => {
                       {action.icon} <a href={action.url} style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>{action.title}</a>
                     </Typography>
                   ))
-                ) : false ? ( // Fallback hardcoded actions
-                  // Security-specific actions
-                  <>
-                    <Typography variant="body2" gutterBottom>
-                      🛡️ <a href="/catalog?filters=tag:security" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Security Services</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      🔍 <a href="/catalog?filters=tag:compliance" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Compliance Tools</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      📋 <a href="/docs/security" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Security Docs</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      🚨 <a href="/alerts" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Security Alerts</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      🔐 <a href="/auth-management" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Access Control</a>
-                    </Typography>
-                    <Typography variant="body2">
-                      📊 <a href="/security-metrics" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Risk Dashboard</a>
-                    </Typography>
-                  </>
-                ) : false ? (
-                  // Platform-specific actions
-                  <>
-                    <Typography variant="body2" gutterBottom>
-                      🏗️ <a href="/catalog?filters=tag:infrastructure" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Infrastructure</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      ☸️ <a href="/kubernetes" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>K8s Clusters</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      🚀 <a href="/deployments" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Deployments</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      📊 <a href="/monitoring" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Monitoring</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      ☁️ <a href="/cloud-resources" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Cloud Resources</a>
-                    </Typography>
-                    <Typography variant="body2">
-                      🔧 <a href="/automation" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Automation Tools</a>
-                    </Typography>
-                  </>
-                ) : false ? (
-                  // Developer-specific actions
-                  <>
-                    <Typography variant="body2" gutterBottom>
-                      🚀 <a href="/create" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Create Service</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      🧪 <a href="/catalog?filters=tag:template" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Code Templates</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      📚 <a href="/docs" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Dev Docs</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      🔍 <a href="/api-docs" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>API Explorer</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      🛠️ <a href="/tools" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Dev Tools</a>
-                    </Typography>
-                    <Typography variant="body2">
-                      🔄 <a href="/ci-cd" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>CI/CD Pipelines</a>
-                    </Typography>
-                  </>
-                ) : currentTemplate?.id === 'ba-devops' ? (
-                  // DevOps-specific actions
-                  <>
-                    <Typography variant="body2" gutterBottom>
-                      🚀 <a href="/create" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>Deploy Service</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      📊 <a href="/catalog?filters=tag:deployment" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>Deployments</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      🔧 <a href="/catalog?filters=tag:pipeline" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>CI/CD Pipelines</a>
-                    </Typography>
-                    <Typography variant="body2">
-                      📈 <a href="/catalog?filters=tag:monitoring" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>Monitoring</a>
-                    </Typography>
-                  </>
-                ) : currentTemplate?.id === 'ba-main' ? (
-                  // Main dashboard - General actions only
-                  <>
-                    <Typography variant="body2" gutterBottom>
-                      📊 <a href="/catalog" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Service Catalog</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      📚 <a href="/docs" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Documentation</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      🔍 <a href="/search" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Global Search</a>
-                    </Typography>
-                    <Typography variant="body2">
-                      ⚙️ <a href="/settings" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Settings</a>
-                    </Typography>
-                  </>
                 ) : (
-                  // Default DevOps/Management actions for other dashboards
+                  // Fallback if no quickActions in YAML
                   <>
                     <Typography variant="body2" gutterBottom>
-                      🚀 <a href="/create" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Create Service</a>
+                      📊 <a href="/catalog" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>Service Catalog</a>
                     </Typography>
                     <Typography variant="body2" gutterBottom>
-                      📊 <a href="/catalog" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Browse Catalog</a>
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      📚 <a href="/docs" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>Documentation</a>
+                      📚 <a href="/docs" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>Documentation</a>
                     </Typography>
                     <Typography variant="body2">
-                      📈 <a href="/catalog-graph" style={{ textDecoration: 'none', color: spec.theme?.primaryColor || '#1976d2' }}>System Graph</a>
+                      ⚙️ <a href="/settings" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>Settings</a>
                     </Typography>
                   </>
                 )}
