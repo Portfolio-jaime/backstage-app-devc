@@ -68,9 +68,18 @@ interface UseDashboardConfigResult {
 
 // Dashboard templates configuration
 const GITHUB_BASE_URL = 'https://raw.githubusercontent.com/Portfolio-jaime/backstage-dashboard-templates/main';
+const GITHUB_API_BASE = 'https://api.github.com';
 const REGISTRY_URL = `${GITHUB_BASE_URL}/registry.yaml`;
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const SELECTED_DASHBOARD_KEY = 'backstage-selected-dashboard';
+
+// GitHub API configuration
+const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN || '';
+const GITHUB_HEADERS = {
+  'Accept': 'application/vnd.github.v3+json',
+  'User-Agent': 'BA-Backstage-Dashboard/1.0',
+  ...(GITHUB_TOKEN && { 'Authorization': `token ${GITHUB_TOKEN}` }),
+};
 
 // Minimal fallback if registry.yaml completely fails
 const EMERGENCY_FALLBACK_TEMPLATE: DashboardTemplate = {
@@ -108,6 +117,58 @@ const MINIMAL_FALLBACK: DashboardConfig = {
       borderRadius: 8,
     },
   },
+};
+
+// GitHub API rate limit monitoring
+const checkGitHubRateLimit = async (): Promise<void> => {
+  try {
+    const response = await fetch(`${GITHUB_API_BASE}/rate_limit`, {
+      headers: GITHUB_HEADERS,
+    });
+    
+    if (response.ok) {
+      const rateLimit = await response.json();
+      const remaining = rateLimit.rate?.remaining || 0;
+      const resetTime = rateLimit.rate?.reset || 0;
+      const resetDate = new Date(resetTime * 1000);
+      
+      console.log(`📊 GitHub API Rate Limit Status:`);
+      console.log(`   Remaining calls: ${remaining}/${rateLimit.rate?.limit || 0}`);
+      console.log(`   Reset time: ${resetDate.toLocaleTimeString()}`);
+      
+      if (remaining < 100) {
+        console.warn('⚠️ GitHub API rate limit low! Consider adding REACT_APP_GITHUB_TOKEN');
+      }
+    }
+  } catch (error) {
+    console.warn('Unable to check GitHub rate limit:', error);
+  }
+};
+
+// Enhanced fetch with GitHub API headers and rate limit monitoring
+const fetchWithGitHubAPI = async (url: string): Promise<Response> => {
+  console.log(`📡 Fetching: ${url}`);
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: GITHUB_HEADERS,
+  });
+  
+  // Monitor rate limits
+  const rateLimitRemaining = response.headers.get('x-ratelimit-remaining');
+  const rateLimitReset = response.headers.get('x-ratelimit-reset');
+  
+  if (rateLimitRemaining && rateLimitReset) {
+    const resetTime = new Date(parseInt(rateLimitReset) * 1000);
+    console.log(`📊 GitHub API calls remaining: ${rateLimitRemaining}`);
+    console.log(`🕐 Rate limit resets at: ${resetTime.toLocaleTimeString()}`);
+    
+    if (parseInt(rateLimitRemaining) < 50) {
+      console.warn('⚠️ GitHub API rate limit getting low!');
+    }
+  }
+  
+  return response;
 };
 
 // Helper function to parse quick actions from YAML
@@ -325,7 +386,11 @@ export const useDashboardConfig = (): UseDashboardConfigResult => {
   const fetchTemplates = async (): Promise<DashboardTemplate[]> => {
     try {
       console.log('📋 Fetching dashboard registry from GitHub...');
-      const response = await fetch(REGISTRY_URL);
+      
+      // Check rate limits first
+      await checkGitHubRateLimit();
+      
+      const response = await fetchWithGitHubAPI(REGISTRY_URL);
       
       if (response.ok) {
         const registryContent = await response.text();
@@ -357,13 +422,7 @@ export const useDashboardConfig = (): UseDashboardConfigResult => {
       console.log('📡 Template:', template.name);
       console.log('📡 URL:', configUrl);
       
-      const response = await fetch(configUrl, {
-        method: 'GET',
-        headers: {
-          'Accept': 'text/plain',
-          'Content-Type': 'text/plain',
-        },
-      });
+      const response = await fetchWithGitHubAPI(configUrl);
       
       console.log('📥 GitHub response status:', response.status, response.statusText);
       

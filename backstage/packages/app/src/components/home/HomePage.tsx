@@ -4,6 +4,7 @@ import { Page, Header, Content, InfoCard } from '@backstage/core-components';
 import WarningIcon from '@material-ui/icons/Warning';
 import ErrorIcon from '@material-ui/icons/Error';
 import HomeIcon from '@material-ui/icons/Home';
+import SettingsIcon from '@material-ui/icons/Settings';
 import {
   HomePageCompanyLogo,
   HomePageStarredEntities,
@@ -17,10 +18,13 @@ import { SecurityAlerts } from './widgets/SecurityAlerts';
 import { SystemHealth } from './widgets/SystemHealth';
 import { WorldClock } from './widgets/WorldClock';
 import { LiveCatalogServices } from './widgets/LiveCatalogServices';
+import { RealMetricsWidget } from './widgets/RealMetricsWidget';
 import { HomePageMarkdown } from '@roadiehq/backstage-plugin-home-markdown';
 import { useDashboardConfig } from '../../hooks/useDashboardConfig';
+import { useUserPreferences } from '../../hooks/useUserPreferences';
 import { DashboardSelector } from './DashboardSelector';
 import { DashboardCards } from './DashboardCards';
+import { UserPreferences } from './UserPreferences';
 
 // Fallback welcome content if YAML doesn't have content
 const getWelcomeContent = (dashboardId?: string) => {
@@ -39,6 +43,8 @@ BA Digital Operations Team
 
 
 export const HomePage = () => {
+  const [preferencesOpen, setPreferencesOpen] = React.useState(false);
+  
   // Back to dynamic system from GitHub
   const { 
     config, 
@@ -48,6 +54,9 @@ export const HomePage = () => {
     currentTemplate, 
     switchTemplate 
   } = useDashboardConfig();
+  
+  // User preferences
+  const { preferences } = useUserPreferences();
 
   if (loading) {
     return (
@@ -101,12 +110,22 @@ export const HomePage = () => {
   }
 
   const { metadata, spec } = config;
-  const spacing = spec.layout?.grid?.spacing || 3;
+  const spacing = preferences.dashboardLayout?.gridSpacing || spec.layout?.grid?.spacing || 3;
 
   return (
     <Page themeId="home">
       <Header title={metadata.title} subtitle={metadata.subtitle}>
-        <HomePageCompanyLogo />
+        <Box display="flex" alignItems="center" gap={1}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<SettingsIcon />}
+            onClick={() => setPreferencesOpen(true)}
+          >
+            Preferences
+          </Button>
+          <HomePageCompanyLogo />
+        </Box>
       </Header>
       <Content>
         
@@ -162,7 +181,7 @@ export const HomePage = () => {
             </InfoCard>
           </Grid>
           
-          {spec.widgets.worldClock?.enabled && (
+          {spec.widgets.worldClock?.enabled && preferences.widgetVisibility.worldClock !== false && (
             <Grid item xs={12} md={4}>
               <WorldClock 
                 title={spec.widgets.worldClock.title || "BA Global Operations Time"}
@@ -253,6 +272,14 @@ export const HomePage = () => {
             </Grid>
           )}
 
+          {/* Real Metrics Widget - Show on DevOps and Developer dashboards */}
+          {(currentTemplate?.id === 'ba-devops' || currentTemplate?.id === 'ba-developer') && 
+           preferences.widgetVisibility.metrics !== false && (
+            <Grid item xs={12} md={6}>
+              <RealMetricsWidget />
+            </Grid>
+          )}
+
           {/* Utilities Row */}
           {spec.widgets.catalog?.enabled && (
             <Grid item xs={12} md={6}>
@@ -311,6 +338,12 @@ export const HomePage = () => {
           </Typography>
         </Box>
       </Content>
+      
+      {/* User Preferences Modal */}
+      <UserPreferences 
+        open={preferencesOpen} 
+        onClose={() => setPreferencesOpen(false)} 
+      />
     </Page>
   );
 };
