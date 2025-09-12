@@ -1,8 +1,9 @@
 import React from 'react';
-import { Grid, Typography, Box, CircularProgress, Paper } from '@material-ui/core';
+import { Grid, Typography, Box, CircularProgress, Paper, Button } from '@material-ui/core';
 import { Page, Header, Content, InfoCard } from '@backstage/core-components';
 import WarningIcon from '@material-ui/icons/Warning';
 import ErrorIcon from '@material-ui/icons/Error';
+import HomeIcon from '@material-ui/icons/Home';
 import {
   HomePageCompanyLogo,
   HomePageStarredEntities,
@@ -154,9 +155,6 @@ export const HomePage = () => {
             <Grid item xs={12}>
               <InfoCard title="🎯 Navigate to Specialized Dashboards">
                 <Box p={2}>
-                  <Typography variant="body2" color="textSecondary" gutterBottom>
-                    Debug: Showing {availableTemplates.filter(t => !t.id.includes('main')).length} specialized dashboards
-                  </Typography>
                   <DashboardCards
                     dashboards={availableTemplates.filter(t => !t.id.includes('main')).map(template => ({
                       id: template.id,
@@ -176,15 +174,26 @@ export const HomePage = () => {
           {currentTemplate?.id !== 'ba-main' && (
             <Grid item xs={12}>
               <InfoCard title={`${currentTemplate?.icon || '📊'} ${currentTemplate?.name || 'Dashboard'}`}>
-                <Box p={1} display="flex" alignItems="center" justifyContent="space-between">
-                  <Typography variant="body2" color="textSecondary">
-                    Currently viewing: {currentTemplate?.category} Dashboard
+                <Box p={2} display="flex" alignItems="center" justifyContent="space-between">
+                  <Typography variant="body1" color="textSecondary">
+                    Currently viewing: <strong>{currentTemplate?.category} Dashboard</strong>
                   </Typography>
-                  <DashboardSelector
-                    currentTemplate={currentTemplate}
-                    availableTemplates={availableTemplates}
-                    onTemplateChange={switchTemplate}
-                  />
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      startIcon={<HomeIcon />}
+                      onClick={() => switchTemplate('ba-main')}
+                      size="small"
+                    >
+                      Back to Main Dashboard
+                    </Button>
+                    <DashboardSelector
+                      currentTemplate={currentTemplate}
+                      availableTemplates={availableTemplates}
+                      onTemplateChange={switchTemplate}
+                    />
+                  </Box>
                 </Box>
               </InfoCard>
             </Grid>

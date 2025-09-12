@@ -415,22 +415,25 @@ export const useDashboardConfig = (): UseDashboardConfigResult => {
   // Initialize
   useEffect(() => {
     const initializeDashboard = async () => {
+      console.log('🚀 Dashboard initialization starting...');
+      
       // Load available templates
       const templates = await fetchTemplates();
+      console.log('📋 Templates loaded:', templates.map(t => t.id));
       setAvailableTemplates(templates);
 
       // Load selected dashboard - fix: use templates directly instead of availableTemplates
       const storedId = localStorage.getItem(SELECTED_DASHBOARD_KEY);
+      console.log('💾 Stored dashboard ID:', storedId);
+      
       let selectedTemplate;
       
-      if (storedId) {
-        selectedTemplate = templates.find(t => t.id === storedId);
-      }
+      // Always start with ba-main for now (for testing)
+      selectedTemplate = templates.find(t => t.id === 'ba-main') || templates.find(t => t.id.includes('main')) || templates[0];
+      console.log('🏠 Using main dashboard template:', selectedTemplate?.name);
       
-      // If no stored selection or stored template not found, default to ba-main
-      if (!selectedTemplate) {
-        selectedTemplate = templates.find(t => t.id === 'ba-main') || templates.find(t => t.id.includes('main')) || templates[0];
-      }
+      // Clear any stored selection to always start fresh
+      localStorage.removeItem(SELECTED_DASHBOARD_KEY);
       
       console.log(`🎯 Loading dashboard: ${selectedTemplate.name} (${selectedTemplate.id})`);
       
