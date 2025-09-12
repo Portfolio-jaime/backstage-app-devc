@@ -41,7 +41,7 @@
     }
   },
 
-  "forwardPorts": [3001, 7008, 5433, 8083],
+  "forwardPorts": [3001, 7008, 5433, 8083, 8080],
   "portsAttributes": {
     "3001": {
       "label": "Backstage Frontend",
@@ -56,6 +56,10 @@
     },
     "8083": {
       "label": "Additional Services (DevC)"
+    },
+    "8080": {
+      "label": "Argo CD Server",
+      "onAutoForward": "notify"
     }
   },
 

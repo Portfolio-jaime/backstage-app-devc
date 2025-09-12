@@ -4,13 +4,13 @@ A comprehensive Backstage training environment designed for DevOps engineers, fe
 
 ## 📊 DevContainer Status - READY ✅
 
-| Component | Port | Status | Description |
-|-----------|------|--------|-------------|
-| **Frontend** | 3001 | ✅ Ready | React UI with DevContainer support |
-| **Backend** | 7008 | ✅ Ready | Node.js API with hot-reload |
-| **PostgreSQL** | 5433 | ✅ Ready | Persistent database in container |
-| **DevContainer** | - | ✅ Configured | VS Code integration active |
-| **GitHub OAuth** | - | ✅ Configured | Authentication ready |
+| Component        | Port | Status        | Description                        |
+| ---------------- | ---- | ------------- | ---------------------------------- |
+| **Frontend**     | 3001 | ✅ Ready      | React UI with DevContainer support |
+| **Backend**      | 7008 | ✅ Ready      | Node.js API with hot-reload        |
+| **PostgreSQL**   | 5433 | ✅ Ready      | Persistent database in container   |
+| **DevContainer** | -    | ✅ Configured | VS Code integration active         |
+| **GitHub OAuth** | -    | ✅ Configured | Authentication ready               |
 
 **⚡ Quick Start**: See [docs/QUICK_SETUP_FUNCIONANDO.md](./docs/QUICK_SETUP_FUNCIONANDO.md) to get started in 3 steps with DevContainer.
 
@@ -40,7 +40,7 @@ El DevContainer se configurará automáticamente:
 ```bash
 # ✅ Automatically executed:
 # - .devcontainer/setup-course.sh
-# - yarn install dependencies  
+# - yarn install dependencies
 # - Configure GitHub integration
 ```
 
@@ -56,20 +56,46 @@ yarn dev
 
 ### 4. Access Application ✅ FUNCIONANDO
 
-| Servicio | URL | Puerto | Estado |
-|----------|-----|---------|---------|
+| Servicio        | URL                   | Puerto    | Estado             |
+| --------------- | --------------------- | --------- | ------------------ |
 | **Frontend UI** | http://localhost:3001 | 3001→3001 | ✅ **FUNCIONANDO** |
 | **Backend API** | http://localhost:7008 | 7008→7008 | ✅ **FUNCIONANDO** |
-| **PostgreSQL** | localhost:5433 | 5433→5432 | ✅ **FUNCIONANDO** |
+| **PostgreSQL**  | localhost:5433        | 5433→5432 | ✅ **FUNCIONANDO** |
 
 ### 🔑 Configuración Clave que Funciona
 
+## 🗄️ Persistencia de Kubernetes/kind/ArgoCD en DevContainer
+
+> **¡Importante!**
+>
+> El devcontainer está configurado para que los datos de tus clusters de Kubernetes (kind/minikube) y la instalación de ArgoCD persistan entre reinicios del contenedor. Esto se logra gracias a los volúmenes Docker definidos en `.devcontainer/docker-compose.yml`:
+
+```
+   - minikube_data:/root/.minikube
+   - kube_data:/root/.kube
+   - kube_data_node:/home/node/.kube
+   - argocd_data:/home/node/.argocd
+```
+
+**¿Qué significa esto?**
+
+- Tu cluster kind/minikube, los recursos de Kubernetes y la configuración de ArgoCD NO se pierden al apagar/prender el devcontainer.
+- Solo se borran si ejecutas `docker-compose down -v` o eliminas manualmente los volúmenes.
+- Puedes trabajar con clusters locales y ArgoCD de forma persistente, ideal para laboratorios y pruebas reales.
+
+**Recomendaciones:**
+
+- No uses `docker-compose down -v` si quieres mantener tu trabajo.
+- Si necesitas backup, puedes copiar los directorios de los volúmenes.
+- Para restaurar, asegúrate de que los volúmenes no se borren y el mapeo siga igual.
+
 **Mapeo de Puertos 1:1** (Host:Container):
+
 ```yaml
 ports:
-  - "3001:3001"  # Frontend React
-  - "7008:7008"  # Backend Node.js  
-  - "5433:5432"  # PostgreSQL
+  - "3001:3001" # Frontend React
+  - "7008:7008" # Backend Node.js
+  - "5433:5432" # PostgreSQL
 ```
 
 ## 📋 What's Included
@@ -93,7 +119,7 @@ ports:
 ### 📚 Course Materials
 
 - **Comprehensive Documentation** - Architecture, setup, and troubleshooting
-- **Hands-on Labs** - Practical exercises and examples  
+- **Hands-on Labs** - Practical exercises and examples
 - **Real-world Templates** - Production-ready scaffolding
 - **Debug Tools** - Scripts and utilities for troubleshooting
 
@@ -123,7 +149,7 @@ The `.env` file contains sensitive configuration:
 ```bash
 # GitHub Integration
 GITHUB_TOKEN=your_github_personal_access_token
-AUTH_GITHUB_CLIENT_ID=your_oauth_app_client_id  
+AUTH_GITHUB_CLIENT_ID=your_oauth_app_client_id
 AUTH_GITHUB_CLIENT_SECRET=your_oauth_app_secret
 
 # Database
@@ -138,6 +164,7 @@ BACKEND_SECRET=generated_secure_secret
 ### GitHub Setup
 
 1. **Personal Access Token** (for API access):
+
    - Go to GitHub → Settings → Developer settings → Personal access tokens
    - Generate token with scopes: `repo`, `read:org`, `read:user`, `user:email`
    - Add to `.env` as `GITHUB_TOKEN`
@@ -207,10 +234,10 @@ curl http://localhost:7008/api/auth/github/refresh
 
 ### Health Checks
 
-| Service | Endpoint | Expected Response |
-|---------|----------|------------------|
-| Frontend | http://localhost:3001 | Backstage UI loads |
-| Backend | http://localhost:7008/healthcheck | `{"status":"ok"}` |
+| Service  | Endpoint                                    | Expected Response       |
+| -------- | ------------------------------------------- | ----------------------- |
+| Frontend | http://localhost:3001                       | Backstage UI loads      |
+| Backend  | http://localhost:7008/healthcheck           | `{"status":"ok"}`       |
 | Database | `docker exec backstage-postgres pg_isready` | `accepting connections` |
 
 ### Performance Monitoring
@@ -229,26 +256,31 @@ docker exec -it backstage-postgres psql -U backstage -d backstage -c "SELECT COU
 ## 🧪 Course Labs
 
 ### Lab 1: Basic Setup
+
 - Deploy Backstage with persistent storage
 - Configure GitHub authentication
 - Import first entities
 
-### Lab 2: Catalog Management  
+### Lab 2: Catalog Management
+
 - Add components and systems
 - Configure entity relationships
 - Set up auto-discovery
 
 ### Lab 3: Templates & Scaffolding
+
 - Create custom templates
 - Add template parameters
 - Generate new services
 
 ### Lab 4: Kubernetes Integration
+
 - Connect to K8s clusters
 - View resource status
 - Monitor deployments
 
 ### Lab 5: Custom Plugins
+
 - Develop frontend plugin
 - Create backend plugin
 - Add to plugin registry
@@ -258,14 +290,17 @@ docker exec -it backstage-postgres psql -U backstage -d backstage -c "SELECT COU
 ### Common Issues
 
 1. **Entities disappear after restart**
+
    - **Cause**: Using in-memory database
    - **Solution**: Configure PostgreSQL (already done)
 
 2. **GitHub OAuth not working**
+
    - **Cause**: Incorrect callback URLs
    - **Solution**: Verify OAuth app settings
 
 3. **Port conflicts**
+
    - **Cause**: Services already running on ports 3001/7008
    - **Solution**: Stop conflicting services or change ports
 
@@ -291,7 +326,7 @@ docker exec -it backstage-postgres psql -U backstage -d backstage -c "SELECT COU
 Comprehensive course documentation is available at:
 
 - **Course Overview**: [docs/course/index.md](./docs/course/index.md)
-- **Architecture Guide**: [docs/course/architecture.md](./docs/course/architecture.md)  
+- **Architecture Guide**: [docs/course/architecture.md](./docs/course/architecture.md)
 - **Troubleshooting**: [docs/course/troubleshooting.md](./docs/course/troubleshooting.md)
 
 Or access via Backstage TechDocs at: http://localhost:3001/docs

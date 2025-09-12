@@ -147,9 +147,28 @@ const parseYamlConfig = (yamlContent: string): DashboardConfig => {
     const versionMatch = yamlContent.match(/version:\s*["']?([^"'\n]+)["']?/);
     const nameMatch = yamlContent.match(/name:\s*([^\n]+)/);
     
-    // Extract content section
-    const welcomeMessageMatch = yamlContent.match(/welcome:\s*\n\s*title:.*?\n\s*message:\s*\|\s*\n([\s\S]*?)(?=\n\s*quickActions:|$)/);
-    const welcomeMessage = welcomeMessageMatch ? welcomeMessageMatch[1].replace(/^\s{8}/gm, '').trim() : null;
+    // Extract content section - improved regex to handle various YAML formats
+    let welcomeMessage = null;
+    
+    // Try multiple patterns to extract welcome message
+    const welcomePatterns = [
+      /welcome:\s*\n\s*title:.*?\n\s*message:\s*\|\s*\n([\s\S]*?)(?=\n\s*quickActions:|$)/,
+      /message:\s*\|\s*\n([\s\S]*?)(?=\n\s*quickActions:|$)/,
+      /message:\s*\|\s*\n([\s\S]*?)(?=\n\w+:|$)/
+    ];
+    
+    for (const pattern of welcomePatterns) {
+      const match = yamlContent.match(pattern);
+      if (match) {
+        // Clean up the message - remove extra indentation
+        welcomeMessage = match[1]
+          .replace(/^\s{8}/gm, '')  // Remove 8 spaces
+          .replace(/^\s{6}/gm, '')  // Remove 6 spaces  
+          .replace(/^\s{4}/gm, '')  // Remove 4 spaces
+          .trim();
+        break;
+      }
+    }
     
     // Extract quick actions
     const quickActionsSection = yamlContent.match(/quickActions:\s*\n([\s\S]*?)(?=\n\w+:|$)/);

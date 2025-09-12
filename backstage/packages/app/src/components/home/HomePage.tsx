@@ -127,11 +127,18 @@ export const HomePage = () => {
           </Grid>
           
           <Grid item xs={12} md={8}>
-            <InfoCard title="Welcome to BA Operations">
+            <InfoCard title={`Welcome to ${metadata.title}`}>
               <Box p={2}>
                 <Typography component="div" style={{ whiteSpace: 'pre-line' }}>
                   {config?.content?.welcomeMessage || getWelcomeContent(currentTemplate?.id).replace(/^#\s+.*$/gm, '').replace(/\*\*(.*?)\*\*/g, '$1').trim()}
                 </Typography>
+                {currentTemplate && currentTemplate.id !== 'ba-main' && (
+                  <Box mt={2} p={2} style={{ backgroundColor: '#f5f5f5', borderRadius: 4 }}>
+                    <Typography variant="body2" color="textSecondary">
+                      <strong>Current Dashboard:</strong> {currentTemplate.name} ({currentTemplate.category})
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             </InfoCard>
           </Grid>
@@ -142,53 +149,43 @@ export const HomePage = () => {
             </Grid>
           )}
 
-          {/* Dashboard Navigation Cards - Always show for now */}
-          <Grid item xs={12}>
-            <InfoCard title="🎯 Navigate to Specialized Dashboards">
-              <Box p={2}>
-                <DashboardCards
-                  dashboards={[
-                    {
-                      id: 'ba-devops',
-                      name: 'BA DevOps Dashboard',
-                      icon: '🚀',
-                      description: 'Operations monitoring and deployment status',
-                      category: 'Operations',
-                    },
-                    {
-                      id: 'ba-platform',
-                      name: 'Platform Engineering',
-                      icon: '⚙️',
-                      description: 'Infrastructure and platform metrics',
-                      category: 'Engineering',
-                    },
-                    {
-                      id: 'ba-security',
-                      name: 'Security Dashboard',
-                      icon: '🔒',
-                      description: 'Security alerts and compliance monitoring',
-                      category: 'Security',
-                    },
-                    {
-                      id: 'ba-management',
-                      name: 'Executive Dashboard',
-                      icon: '📊',
-                      description: 'High-level metrics and business insights',
-                      category: 'Management',
-                    },
-                    {
-                      id: 'ba-developer',
-                      name: 'Developer Experience',
-                      icon: '💻',
-                      description: 'Developer tools and productivity metrics',
-                      category: 'Development',
-                    },
-                  ]}
-                  onDashboardSelect={switchTemplate}
-                />
-              </Box>
-            </InfoCard>
-          </Grid>
+          {/* Dashboard Navigation Cards - Only show on main dashboard */}
+          {currentTemplate?.id === 'ba-main' && (
+            <Grid item xs={12}>
+              <InfoCard title="🎯 Navigate to Specialized Dashboards">
+                <Box p={2}>
+                  <DashboardCards
+                    dashboards={availableTemplates.filter(t => t.id !== 'ba-main').map(template => ({
+                      id: template.id,
+                      name: template.name,
+                      icon: template.icon || '📊',
+                      description: template.description,
+                      category: template.category,
+                    }))}
+                    onDashboardSelect={switchTemplate}
+                  />
+                </Box>
+              </InfoCard>
+            </Grid>
+          )}
+
+          {/* Dashboard Selector - Show on specialized dashboards */}
+          {currentTemplate?.id !== 'ba-main' && (
+            <Grid item xs={12}>
+              <InfoCard title={`${currentTemplate?.icon || '📊'} ${currentTemplate?.name || 'Dashboard'}`}>
+                <Box p={1} display="flex" alignItems="center" justifyContent="space-between">
+                  <Typography variant="body2" color="textSecondary">
+                    Currently viewing: {currentTemplate?.category} Dashboard
+                  </Typography>
+                  <DashboardSelector
+                    currentTemplate={currentTemplate}
+                    availableTemplates={availableTemplates}
+                    onTemplateChange={switchTemplate}
+                  />
+                </Box>
+              </InfoCard>
+            </Grid>
+          )}
 
           {/* Flight Operations Row */}
           {spec.widgets.flightOps?.enabled && (
