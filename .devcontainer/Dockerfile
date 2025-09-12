@@ -64,7 +64,7 @@ RUN npm install -g npm@latest
 
 
 # Exponemos los puertos necesarios
-EXPOSE 443 80 8080 3001 7008 2375 2376
+EXPOSE 443 80 8080 3001 7008 2375 2376 8083
 
 # Dejamos bash como comando por defecto
 CMD [ "bash" ]

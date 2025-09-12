@@ -29,7 +29,7 @@ services:
       - "7008:7008"
       - "4443:443"
       - "8081:80"
-      - "8083:8080"
+      - "8083:8083"
       - "8080:8080" # Puerto para Argo CD Server
     env_file:
       - .env

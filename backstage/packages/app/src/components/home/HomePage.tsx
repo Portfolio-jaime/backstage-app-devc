@@ -150,12 +150,15 @@ export const HomePage = () => {
           )}
 
           {/* Dashboard Navigation Cards - Only show on main dashboard */}
-          {currentTemplate?.id === 'ba-main' && (
+          {(currentTemplate?.id === 'ba-main' || currentTemplate?.id?.includes('main')) && (
             <Grid item xs={12}>
               <InfoCard title="🎯 Navigate to Specialized Dashboards">
                 <Box p={2}>
+                  <Typography variant="body2" color="textSecondary" gutterBottom>
+                    Debug: Showing {availableTemplates.filter(t => !t.id.includes('main')).length} specialized dashboards
+                  </Typography>
                   <DashboardCards
-                    dashboards={availableTemplates.filter(t => t.id !== 'ba-main').map(template => ({
+                    dashboards={availableTemplates.filter(t => !t.id.includes('main')).map(template => ({
                       id: template.id,
                       name: template.name,
                       icon: template.icon || '📊',
@@ -265,6 +268,11 @@ export const HomePage = () => {
         <Box mt={3} textAlign="center">
           <Typography variant="caption" color="textSecondary">
             🔄 Auto-refreshes from GitHub every 5 minutes • v{metadata.version}
+            {currentTemplate && (
+              <Typography variant="caption" display="block" style={{ marginTop: 4 }}>
+                Current Template: {currentTemplate.id} • Available: {availableTemplates.length}
+              </Typography>
+            )}
             {spec.branding?.motto && (
               <Typography variant="caption" display="block" style={{ fontStyle: 'italic', marginTop: 4 }}>
                 "{spec.branding.motto}"

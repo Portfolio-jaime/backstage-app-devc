@@ -429,7 +429,7 @@ export const useDashboardConfig = (): UseDashboardConfigResult => {
       
       // If no stored selection or stored template not found, default to ba-main
       if (!selectedTemplate) {
-        selectedTemplate = templates.find(t => t.id === 'ba-main') || templates[0];
+        selectedTemplate = templates.find(t => t.id === 'ba-main') || templates.find(t => t.id.includes('main')) || templates[0];
       }
       
       console.log(`🎯 Loading dashboard: ${selectedTemplate.name} (${selectedTemplate.id})`);
