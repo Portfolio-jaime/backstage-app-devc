@@ -25,18 +25,30 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export const WorldClock = () => {
+interface Timezone {
+  name: string;
+  timezone: string;
+  flag: string;
+}
+
+interface WorldClockProps {
+  title?: string;
+  timezones?: Timezone[];
+}
+
+export const WorldClock = ({ title = "BA Global Operations Time", timezones: propTimezones }: WorldClockProps) => {
   const classes = useStyles();
   const [times, setTimes] = useState<{[key: string]: string}>({});
   
-  const timezones = [
-    { location: 'London', timezone: 'Europe/London', flag: '🇬🇧' },
-    { location: 'New York', timezone: 'America/New_York', flag: '🇺🇸' },
-    { location: 'Dubai', timezone: 'Asia/Dubai', flag: '🇦🇪' },
-    { location: 'Hong Kong', timezone: 'Asia/Hong_Kong', flag: '🇭🇰' },
-    { location: 'Sydney', timezone: 'Australia/Sydney', flag: '🇦🇺' },
-    { location: 'Mumbai', timezone: 'Asia/Kolkata', flag: '🇮🇳' },
-    { location: 'Bogota', timezone: 'America/Bogota', flag: '🇨🇴' },
+  // Use prop timezones or fallback to default
+  const timezones = propTimezones || [
+    { name: 'London', timezone: 'Europe/London', flag: '🇬🇧' },
+    { name: 'New York', timezone: 'America/New_York', flag: '🇺🇸' },
+    { name: 'Dubai', timezone: 'Asia/Dubai', flag: '🇦🇪' },
+    { name: 'Hong Kong', timezone: 'Asia/Hong_Kong', flag: '🇭🇰' },
+    { name: 'Sydney', timezone: 'Australia/Sydney', flag: '🇦🇺' },
+    { name: 'Mumbai', timezone: 'Asia/Kolkata', flag: '🇮🇳' },
+    { name: 'Bogota', timezone: 'America/Bogota', flag: '🇨🇴' },
   ];
 
   useEffect(() => {
@@ -50,7 +62,7 @@ export const WorldClock = () => {
           minute: '2-digit',
           second: '2-digit'
         });
-        newTimes[tz.location] = time;
+        newTimes[tz.name] = time;
       });
       setTimes(newTimes);
     };
@@ -76,19 +88,19 @@ export const WorldClock = () => {
   };
 
   return (
-    <InfoCard title="BA Global Operations Time" icon={<AccessTimeIcon />}>
+    <InfoCard title={title} icon={<AccessTimeIcon />}>
       <Grid container spacing={1}>
         {timezones.map((tz, index) => (
           <Grid item xs={6} md={4} key={index}>
             <div className={classes.clockItem}>
               <div style={{ fontSize: '1.5rem' }}>
-                {tz.flag} {getTimeOfDay(tz.location, tz.timezone)}
+                {tz.flag} {getTimeOfDay(tz.name, tz.timezone)}
               </div>
               <Typography className={classes.time}>
-                {times[tz.location] || '00:00:00'}
+                {times[tz.name] || '00:00:00'}
               </Typography>
               <Typography className={classes.location}>
-                {tz.location}
+                {tz.name}
               </Typography>
             </div>
           </Grid>

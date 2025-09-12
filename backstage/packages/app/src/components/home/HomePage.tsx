@@ -146,7 +146,10 @@ export const HomePage = () => {
           
           {spec.widgets.worldClock?.enabled && (
             <Grid item xs={12} md={4}>
-              <WorldClock />
+              <WorldClock 
+                title={spec.widgets.worldClock.title || "BA Global Operations Time"}
+                timezones={spec.widgets.worldClock.timezones}
+              />
             </Grid>
           )}
 

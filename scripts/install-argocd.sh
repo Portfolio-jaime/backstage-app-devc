@@ -20,11 +20,17 @@ kubectl apply -n $NAMESPACE -f https://raw.githubusercontent.com/argoproj/argo-c
 echo "[3/6] Esperando a que los pods de ArgoCD estén en estado Running..."
 kubectl wait --for=condition=available --timeout=180s deployment/argocd-server -n $NAMESPACE
 
+
+')
+
 # 4. Cambiar la contraseña de admin
 echo "[4/6] Cambiando la contraseña de admin..."
-hashpw=$(htpasswd -bnBC 10 "" "$NEW_PASSWORD" | tr -d ':\n')
+hashpw=$(htpasswd -bnBC 10 "" "$NEW_PASSWORD" | awk -F: '{print $2}' | tr -d '\n')
 kubectl -n $NAMESPACE patch secret argocd-secret \
   -p "{\"stringData\": {\"admin.password\": \"$hashpw\", \"admin.passwordMtime\": \"$(date +%FT%T%Z)\"}}"
+
+# (Opcional) Eliminar el secreto de contraseña inicial
+kubectl -n $NAMESPACE delete secret argocd-initial-admin-secret || true
 
 # 5. Reiniciar el pod de ArgoCD server
 echo "[5/6] Reiniciando el pod argocd-server..."
@@ -36,4 +42,4 @@ echo "Accede a ArgoCD en: http://localhost:8080 (usa port-forward si es necesari
 echo "Usuario: admin"
 echo "Contraseña: $NEW_PASSWORD"
 echo "Para exponer el servicio ejecuta:"
-echo "kubectl port-forward svc/argocd-server -n argocd 8080:443"
+echo "kubectl port-forward --address 0.0.0.0 svc/argocd-server -n argocd 8080:443"
