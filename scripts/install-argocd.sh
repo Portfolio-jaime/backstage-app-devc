@@ -26,8 +26,7 @@ kubectl wait --for=condition=available --timeout=180s deployment/argocd-server -
 # 4. Cambiar la contraseña de admin
 echo "[4/6] Cambiando la contraseña de admin..."
 hashpw=$(htpasswd -bnBC 10 "" "$NEW_PASSWORD" | awk -F: '{print $2}' | tr -d '\n')
-kubectl -n $NAMESPACE patch secret argocd-secret \
-  -p "{\"stringData\": {\"admin.password\": \"$hashpw\", \"admin.passwordMtime\": \"$(date +%FT%T%Z)\"}}"
+kubectl -n $NAMESPACE patch secret argocd-secret -p "{\"stringData\": {\"admin.password\": \"$hashpw\", \"admin.passwordMtime\": \"$(date +%FT%T%Z)\"}}"
 
 # (Opcional) Eliminar el secreto de contraseña inicial
 kubectl -n $NAMESPACE delete secret argocd-initial-admin-secret || true

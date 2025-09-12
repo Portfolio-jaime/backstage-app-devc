@@ -128,15 +128,33 @@ export const HomePage = () => {
           </Grid>
           
           <Grid item xs={12} md={8}>
-            <InfoCard title={`Welcome to ${metadata.title}`}>
+            <InfoCard 
+              title={
+                <Box display="flex" alignItems="center" gap={2}>
+                  <span>Welcome to {metadata.title}</span>
+                  {currentTemplate && currentTemplate.id !== 'ba-main' && (
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <span style={{ fontSize: '1.5rem' }}>{currentTemplate.icon}</span>
+                      <Typography variant="h6" component="span" color="primary">
+                        {currentTemplate.name}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              }
+            >
               <Box p={2}>
                 <Typography component="div" style={{ whiteSpace: 'pre-line' }}>
                   {config?.content?.welcomeMessage || getWelcomeContent(currentTemplate?.id).replace(/^#\s+.*$/gm, '').replace(/\*\*(.*?)\*\*/g, '$1').trim()}
                 </Typography>
                 {currentTemplate && currentTemplate.id !== 'ba-main' && (
-                  <Box mt={2} p={2} style={{ backgroundColor: '#f5f5f5', borderRadius: 4 }}>
+                  <Box mt={2} p={2} style={{ 
+                    backgroundColor: 'rgba(25, 118, 210, 0.08)', 
+                    borderRadius: 4,
+                    border: '1px solid rgba(25, 118, 210, 0.2)'
+                  }}>
                     <Typography variant="body2" color="textSecondary">
-                      <strong>Current Dashboard:</strong> {currentTemplate.name} ({currentTemplate.category})
+                      <strong>Dashboard Type:</strong> {currentTemplate.category} • <strong>ID:</strong> {currentTemplate.id}
                     </Typography>
                   </Box>
                 )}
