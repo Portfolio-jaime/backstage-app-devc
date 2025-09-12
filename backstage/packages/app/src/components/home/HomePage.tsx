@@ -8,7 +8,6 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import {
   HomePageCompanyLogo,
   HomePageStarredEntities,
-  HomePageRandomJoke,
 } from '@backstage/plugin-home';
 import { HomePageSearchBar } from '@backstage/plugin-search';
 import { FlightOpsWidget } from './widgets/FlightOpsWidget';
@@ -19,9 +18,11 @@ import { SystemHealth } from './widgets/SystemHealth';
 import { WorldClock } from './widgets/WorldClock';
 import { LiveCatalogServices } from './widgets/LiveCatalogServices';
 import { RealMetricsWidget } from './widgets/RealMetricsWidget';
+import { DailyTipsWidget } from './widgets/DailyTipsWidget';
 import { HomePageMarkdown } from '@roadiehq/backstage-plugin-home-markdown';
 import { useDashboardConfig } from '../../hooks/useDashboardConfig';
 import { useUserPreferences } from '../../hooks/useUserPreferences';
+import { useDashboardPermissions } from '../../hooks/useDashboardPermissions';
 import { DashboardSelector } from './DashboardSelector';
 import { DashboardCards } from './DashboardCards';
 import { UserPreferences } from './UserPreferences';
@@ -57,6 +58,9 @@ export const HomePage = () => {
   
   // User preferences
   const { preferences } = useUserPreferences();
+  
+  // Dashboard permissions
+  const { currentUser, checkDashboardAccess, getAccessibleDashboards } = useDashboardPermissions();
 
   if (loading) {
     return (
@@ -196,15 +200,25 @@ export const HomePage = () => {
               <InfoCard title="🎯 Navigate to Specialized Dashboards">
                 <Box p={2}>
                   <DashboardCards
-                    dashboards={availableTemplates.filter(t => !t.id.includes('main')).map(template => ({
-                      id: template.id,
-                      name: template.name,
-                      icon: template.icon || '📊',
-                      description: template.description,
-                      category: template.category,
-                    }))}
+                    dashboards={availableTemplates
+                      .filter(t => !t.id.includes('main'))
+                      .filter(t => checkDashboardAccess(t.id).allowed)
+                      .map(template => ({
+                        id: template.id,
+                        name: template.name,
+                        icon: template.icon || '📊',
+                        description: template.description,
+                        category: template.category,
+                      }))}
                     onDashboardSelect={switchTemplate}
                   />
+                  {currentUser && (
+                    <Box mt={2}>
+                      <Typography variant="caption" color="textSecondary">
+                        👤 Logged in as: {currentUser.name} ({currentUser.roles.join(', ')})
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
               </InfoCard>
             </Grid>
@@ -316,7 +330,7 @@ export const HomePage = () => {
           </Grid>
           
           <Grid item xs={12} md={3}>
-            <HomePageRandomJoke />
+            <DailyTipsWidget />
           </Grid>
 
         </Grid>
