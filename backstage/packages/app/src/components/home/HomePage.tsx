@@ -26,6 +26,7 @@ import { useDashboardPermissions } from '../../hooks/useDashboardPermissions';
 import { DashboardSelector } from './DashboardSelector';
 import { DashboardCards } from './DashboardCards';
 import { UserPreferences } from './UserPreferences';
+import { ThemeSelector } from './ThemeSelector';
 
 // Fallback welcome content if YAML doesn't have content
 const getWelcomeContent = (dashboardId?: string) => {
@@ -224,33 +225,45 @@ export const HomePage = () => {
             </Grid>
           )}
 
-          {/* Dashboard Selector - Show on specialized dashboards */}
+          {/* Dashboard Info and Selector Row - Show on specialized dashboards */}
           {currentTemplate?.id !== 'ba-main' && (
-            <Grid item xs={12}>
-              <InfoCard title={`${currentTemplate?.icon || '📊'} ${currentTemplate?.name || 'Dashboard'}`}>
-                <Box p={2} display="flex" alignItems="center" justifyContent="space-between">
-                  <Typography variant="body1" color="textSecondary">
-                    Currently viewing: <strong>{currentTemplate?.category} Dashboard</strong>
-                  </Typography>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      startIcon={<HomeIcon />}
-                      onClick={() => switchTemplate('ba-main')}
-                      size="small"
-                    >
-                      Back to Main Dashboard
-                    </Button>
-                    <DashboardSelector
-                      currentTemplate={currentTemplate}
-                      availableTemplates={availableTemplates}
-                      onTemplateChange={switchTemplate}
-                    />
+            <>
+              <Grid item xs={12} md={6}>
+                <InfoCard title={`${currentTemplate?.icon || '📊'} ${currentTemplate?.name || 'Dashboard'}`}>
+                  <Box p={2}>
+                    <Typography variant="body1" color="textSecondary">
+                      Currently viewing: <strong>{currentTemplate?.category} Dashboard</strong>
+                    </Typography>
+                    <Box mt={1}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<HomeIcon />}
+                        onClick={() => switchTemplate('ba-main')}
+                        size="small"
+                      >
+                        Back to Main Dashboard
+                      </Button>
+                    </Box>
                   </Box>
-                </Box>
-              </InfoCard>
-            </Grid>
+                </InfoCard>
+              </Grid>
+              
+              <Grid item xs={12} md={4}>
+                <DashboardSelector
+                  currentTemplate={currentTemplate}
+                  availableTemplates={availableTemplates}
+                  onTemplateChange={switchTemplate}
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={2}>
+                <ThemeSelector
+                  currentDashboard={currentTemplate?.id}
+                  compact={true}
+                />
+              </Grid>
+            </>
           )}
 
           {/* Flight Operations Row */}

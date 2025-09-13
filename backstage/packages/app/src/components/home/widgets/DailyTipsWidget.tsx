@@ -12,7 +12,7 @@ import {
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import RefreshIcon from '@material-ui/icons/Refresh';
-import LightbulbIcon from '@material-ui/icons/Lightbulb';
+import InfoIcon from '@material-ui/icons/Info';
 import CodeIcon from '@material-ui/icons/Code';
 import SecurityIcon from '@material-ui/icons/Security';
 import SpeedIcon from '@material-ui/icons/Speed';
@@ -163,7 +163,7 @@ export const DailyTipsWidget = () => {
       case 'performance': return <SpeedIcon />;
       case 'collaboration': return <GroupWorkIcon />;
       case 'devops': return <GroupWorkIcon />;
-      default: return <LightbulbIcon />;
+      default: return <InfoIcon />;
     }
   };
 
@@ -228,7 +228,7 @@ export const DailyTipsWidget = () => {
 
   if (!currentTip) {
     return (
-      <InfoCard title="💡 Daily Developer Tip" icon={<LightbulbIcon />}>
+      <InfoCard title="💡 Daily Developer Tip" icon={<InfoIcon />}>
         <Box p={2} textAlign="center">
           <Typography variant="body2">Loading tip...</Typography>
         </Box>
@@ -237,7 +237,7 @@ export const DailyTipsWidget = () => {
   }
 
   return (
-    <InfoCard title="💡 Daily Developer Tip" icon={<LightbulbIcon />}>
+    <InfoCard title="💡 Daily Developer Tip" icon={<InfoIcon />}>
       <Fade in={!isLoading} timeout={300}>
         <Card className={classes.tipCard}>
           <CardContent>

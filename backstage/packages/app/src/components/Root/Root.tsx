@@ -1,5 +1,6 @@
 import { PropsWithChildren } from 'react';
-import { makeStyles } from '@material-ui/core';
+import { makeStyles, ThemeProvider } from '@material-ui/core';
+import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 import HomeIcon from '@material-ui/icons/Home';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import ExtensionIcon from '@material-ui/icons/Extension';
@@ -57,42 +58,48 @@ const SidebarLogo = () => {
   );
 };
 
-export const Root = ({ children }: PropsWithChildren<{}>) => (
-  <SidebarPage>
-    <Sidebar>
-      <SidebarLogo />
-      <SidebarGroup label="Search" icon={<SearchIcon />} to="/search">
-        <SidebarSearchModal />
-      </SidebarGroup>
-      <SidebarDivider />
-      <SidebarGroup label="Menu" icon={<MenuIcon />}>
-        {/* Global nav, not org-specific */}
-        <SidebarItem icon={DashboardIcon} to="dashboard" text="Dashboard" />
-        <SidebarItem icon={HomeIcon} to="catalog" text="BA-Home" />
-        <MyGroupsSidebarItem
-          singularTitle="My Group"
-          pluralTitle="My Groups"
-          icon={GroupIcon}
-        />
-        <SidebarItem icon={ExtensionIcon} to="api-docs" text="APIs" />
-        <SidebarItem icon={LibraryBooks} to="docs" text="Docs" />
-        <SidebarItem icon={CreateComponentIcon} to="create" text="Create..." />
-        {/* End global nav */}
-        <SidebarDivider />
-        <SidebarScrollWrapper>
-          {/* Items in this group will be scrollable if they run out of space */}
-        </SidebarScrollWrapper>
-      </SidebarGroup>
-      <SidebarSpace />
-      <SidebarDivider />
-      <SidebarGroup
-        label="Settings"
-        icon={<UserSettingsSignInAvatar />}
-        to="/settings"
-      >
-        <SidebarSettings />
-      </SidebarGroup>
-    </Sidebar>
-    {children}
-  </SidebarPage>
-);
+export const Root = ({ children }: PropsWithChildren<{}>) => {
+  const { materialTheme } = useDynamicTheme();
+  
+  return (
+    <ThemeProvider theme={materialTheme}>
+      <SidebarPage>
+        <Sidebar>
+          <SidebarLogo />
+          <SidebarGroup label="Search" icon={<SearchIcon />} to="/search">
+            <SidebarSearchModal />
+          </SidebarGroup>
+          <SidebarDivider />
+          <SidebarGroup label="Menu" icon={<MenuIcon />}>
+            {/* Global nav, not org-specific */}
+            <SidebarItem icon={DashboardIcon} to="dashboard" text="Dashboard" />
+            <SidebarItem icon={HomeIcon} to="catalog" text="BA-Home" />
+            <MyGroupsSidebarItem
+              singularTitle="My Group"
+              pluralTitle="My Groups"
+              icon={GroupIcon}
+            />
+            <SidebarItem icon={ExtensionIcon} to="api-docs" text="APIs" />
+            <SidebarItem icon={LibraryBooks} to="docs" text="Docs" />
+            <SidebarItem icon={CreateComponentIcon} to="create" text="Create..." />
+            {/* End global nav */}
+            <SidebarDivider />
+            <SidebarScrollWrapper>
+              {/* Items in this group will be scrollable if they run out of space */}
+            </SidebarScrollWrapper>
+          </SidebarGroup>
+          <SidebarSpace />
+          <SidebarDivider />
+          <SidebarGroup
+            label="Settings"
+            icon={<UserSettingsSignInAvatar />}
+            to="/settings"
+          >
+            <SidebarSettings />
+          </SidebarGroup>
+        </Sidebar>
+        {children}
+      </SidebarPage>
+    </ThemeProvider>
+  );
+};

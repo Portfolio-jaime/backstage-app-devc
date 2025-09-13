@@ -1,7 +1,7 @@
 import React from 'react';
 import { InfoCard } from '@backstage/core-components';
 import { List, ListItem, ListItemText, Typography, Chip, Box } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 import SecurityIcon from '@material-ui/icons/Security';
 import ErrorIcon from '@material-ui/icons/Error';
 import WarningIcon from '@material-ui/icons/Warning';
@@ -17,15 +17,15 @@ const useStyles = makeStyles(theme => ({
   },
   criticalAlert: {
     borderColor: '#f44336',
-    backgroundColor: '#ffebee',
+    backgroundColor: theme.palette.type === 'dark' ? 'rgba(244, 67, 54, 0.15)' : '#ffebee',
   },
   warningAlert: {
     borderColor: '#ff9800',
-    backgroundColor: '#fff3e0',
+    backgroundColor: theme.palette.type === 'dark' ? 'rgba(255, 152, 0, 0.15)' : '#fff3e0',
   },
   infoAlert: {
     borderColor: '#2196f3',
-    backgroundColor: '#e3f2fd',
+    backgroundColor: theme.palette.type === 'dark' ? 'rgba(33, 150, 243, 0.15)' : '#e3f2fd',
   },
   alertHeader: {
     display: 'flex',
@@ -40,6 +40,7 @@ const useStyles = makeStyles(theme => ({
 
 export const SecurityAlerts = () => {
   const classes = useStyles();
+  const theme = useTheme();
   
   const alerts = [
     {
@@ -88,13 +89,14 @@ export const SecurityAlerts = () => {
   };
 
   const getSeverityIcon = (severity: string) => {
+    const iconColor = theme.palette.type === 'dark' ? 0.9 : 1;
     switch (severity) {
       case 'critical':
-        return <ErrorIcon style={{ color: '#f44336', fontSize: 20 }} />;
+        return <ErrorIcon style={{ color: `rgba(244, 67, 54, ${iconColor})`, fontSize: 20 }} />;
       case 'warning':
-        return <WarningIcon style={{ color: '#ff9800', fontSize: 20 }} />;
+        return <WarningIcon style={{ color: `rgba(255, 152, 0, ${iconColor})`, fontSize: 20 }} />;
       default:
-        return <InfoIcon style={{ color: '#2196f3', fontSize: 20 }} />;
+        return <InfoIcon style={{ color: `rgba(33, 150, 243, ${iconColor})`, fontSize: 20 }} />;
     }
   };
 
