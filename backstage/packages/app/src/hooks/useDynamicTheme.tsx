@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, createContext, ReactNode } from 'react';
 import { createTheme, Theme } from '@material-ui/core/styles';
 import { PaletteType } from '@material-ui/core';
+import { themes, lightTheme, darkTheme } from '@backstage/theme';
 
 // Definición de tipos para temas personalizados
 export interface CustomThemeConfig {
@@ -224,7 +225,7 @@ export const useDynamicTheme = (): ThemeContextType => {
   return context;
 };
 
-// Provider de temas dinámicos
+// Provider de temas dinámicos - simplificado para compatibilidad con Backstage
 interface DynamicThemeProviderProps {
   children: ReactNode;
   currentDashboard?: string;
@@ -239,8 +240,8 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({
 
   // Cargar tema guardado del localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('backstage-theme');
-    const savedDarkMode = localStorage.getItem('backstage-dark-mode') === 'true';
+    const savedTheme = localStorage.getItem('backstage-custom-theme');
+    const savedDarkMode = localStorage.getItem('backstage-custom-dark-mode') === 'true';
     
     if (savedTheme && SYSTEM_THEMES.find(t => t.id === savedTheme)) {
       setCurrentThemeId(savedTheme);
@@ -250,75 +251,15 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({
 
   // Guardar preferencias en localStorage
   useEffect(() => {
-    localStorage.setItem('backstage-theme', currentThemeId);
-    localStorage.setItem('backstage-dark-mode', isDarkMode.toString());
+    localStorage.setItem('backstage-custom-theme', currentThemeId);
+    localStorage.setItem('backstage-custom-dark-mode', isDarkMode.toString());
   }, [currentThemeId, isDarkMode]);
-
-  // Cambiar tema automáticamente según el dashboard (opcional)
-  useEffect(() => {
-    if (currentDashboard) {
-      const dashboardTheme = SYSTEM_THEMES.find(theme => 
-        theme.forDashboards?.includes(currentDashboard) && 
-        theme.type === (isDarkMode ? 'dark' : 'light')
-      );
-      
-      // Solo auto-cambiar si el usuario no ha seleccionado manualmente un tema personalizado
-      const isDefaultTheme = currentThemeId.includes('ba-classic');
-      if (dashboardTheme && isDefaultTheme) {
-        setCurrentThemeId(dashboardTheme.id);
-      }
-    }
-  }, [currentDashboard, isDarkMode]);
 
   // Obtener tema actual
   const currentTheme = SYSTEM_THEMES.find(t => t.id === currentThemeId) || SYSTEM_THEMES[0];
 
-  // Crear tema de Material-UI basado en la configuración personalizada
-  const materialTheme = createTheme({
-    palette: {
-      type: currentTheme.type as PaletteType,
-      primary: {
-        main: currentTheme.colors.primary,
-      },
-      secondary: {
-        main: currentTheme.colors.secondary,
-      },
-      background: {
-        default: currentTheme.colors.background,
-        paper: currentTheme.colors.surface,
-      },
-      text: {
-        primary: currentTheme.colors.text,
-      },
-      divider: currentTheme.colors.border,
-      success: {
-        main: currentTheme.colors.success || '#4caf50',
-      },
-      warning: {
-        main: currentTheme.colors.warning || '#ff9800',
-      },
-      error: {
-        main: currentTheme.colors.error || '#f44336',
-      },
-    },
-    shape: {
-      borderRadius: 8,
-    },
-    spacing: 8,
-    overrides: {
-      MuiCard: {
-        root: {
-          backgroundColor: currentTheme.colors.card,
-          borderColor: currentTheme.colors.border,
-        },
-      },
-      MuiPaper: {
-        root: {
-          backgroundColor: currentTheme.colors.surface,
-        },
-      },
-    },
-  });
+  // Usar los temas base de Backstage sin modificaciones profundas
+  const materialTheme = currentTheme.type === 'dark' ? darkTheme : lightTheme;
 
   // Función para cambiar tema
   const changeTheme = (themeId: string) => {
@@ -331,7 +272,6 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({
   // Obtener temas disponibles para un dashboard específico
   const getThemesForDashboard = (dashboardId: string): CustomThemeConfig[] => {
     return SYSTEM_THEMES.filter(theme => {
-      // Incluir temas por defecto y temas específicos del dashboard
       return theme.category === 'default' || 
              theme.category === 'seasonal' ||
              theme.forDashboards?.includes(dashboardId);
@@ -343,7 +283,6 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({
     const newDarkMode = !isDarkMode;
     setIsDarkMode(newDarkMode);
     
-    // Cambiar al tema equivalente en el modo contrario
     const currentThemeBase = currentThemeId.replace('-light', '').replace('-dark', '');
     const newThemeId = `${currentThemeBase}-${newDarkMode ? 'dark' : 'light'}`;
     
@@ -369,4 +308,4 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({
   );
 };
 
-export default useDynamicTheme;
+export default DynamicThemeProvider;
