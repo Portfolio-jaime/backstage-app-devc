@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
+import * as yaml from 'js-yaml';
 
 interface DashboardTemplate {
   id: string;
@@ -267,28 +268,28 @@ const parseYamlConfig = (yamlContent: string): DashboardConfig => {
     
     // Special handling for worldClock with timezones
     if (isWidgetEnabled('worldClock')) {
-      // Extract timezones from YAML
-      const timezones = [];
-      const timezoneMatches = yamlContent.match(/- name: "([^"]+)"\s+timezone: "([^"]+)"\s+flag: "([^"]+)"/g);
-      if (timezoneMatches) {
-        timezoneMatches.forEach(match => {
-          const nameMatch = match.match(/name: "([^"]+)"/);
-          const tzMatch = match.match(/timezone: "([^"]+)"/);
-          const flagMatch = match.match(/flag: "([^"]+)"/);
-          if (nameMatch && tzMatch && flagMatch) {
-            timezones.push({
-              name: nameMatch[1],
-              timezone: tzMatch[1],
-              flag: flagMatch[1]
-            });
-          }
-        });
+      try {
+        // Parse YAML to extract structured timezone configuration
+        const parsedConfig = yaml.load(yamlContent) as any;
+        const worldClockConfig = parsedConfig?.spec?.widgets?.worldClock || {};
+        const timezones = worldClockConfig.timezones || [];
+
+        console.log(`🌍 Found ${timezones.length} timezones for WorldClock:`, timezones.map((tz: any) => tz.name));
+
+        enabledWidgets.worldClock = {
+          enabled: true,
+          title: worldClockConfig.title || 'World Clock',
+          refreshInterval: worldClockConfig.refreshInterval || 1000,
+          timezones: timezones
+        };
+      } catch (error) {
+        console.warn('Failed to parse WorldClock timezones from YAML, using fallback:', error);
+        enabledWidgets.worldClock = {
+          enabled: true,
+          refreshInterval: 1000,
+          timezones: [] // Will use widget's default timezones
+        };
       }
-      enabledWidgets.worldClock = { 
-        enabled: true, 
-        refreshInterval: 1000,
-        timezones: timezones 
-      };
     }
     
     // Extract theme colors
