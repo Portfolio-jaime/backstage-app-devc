@@ -222,16 +222,23 @@ export const HomePage = () => {
               <InfoCard title="🎯 Navigate to Specialized Dashboards">
                 <Box p={2}>
                   <DashboardCards
-                    dashboards={availableTemplates
-                      .filter(t => !t.id.includes('main'))
-                      .filter(t => checkDashboardAccess(t.id).allowed)
-                      .map(template => ({
+                    dashboards={(() => {
+                      const filteredTemplates = availableTemplates
+                        .filter(t => !t.id.includes('main'))
+                        .filter(t => checkDashboardAccess(t.id).allowed);
+
+                      console.log('🎯 Dashboard Cards - Available templates:', availableTemplates.length);
+                      console.log('🎯 Dashboard Cards - After filtering:', filteredTemplates.length);
+                      console.log('🎯 Dashboard Cards - Filtered templates:', filteredTemplates.map(t => t.id));
+
+                      return filteredTemplates.map(template => ({
                         id: template.id,
                         name: template.name,
                         icon: template.icon || '📊',
                         description: template.description,
                         category: template.category,
-                      }))}
+                      }));
+                    })()}
                     onDashboardSelect={switchTemplate}
                   />
                   {currentUser && (

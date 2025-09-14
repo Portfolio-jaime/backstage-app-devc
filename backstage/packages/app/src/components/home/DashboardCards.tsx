@@ -62,10 +62,13 @@ interface DashboardCardsProps {
 const getCategoryColor = (category: string) => {
   const colors = {
     'Operations': 'primary',
-    'Engineering': 'secondary', 
+    'Engineering': 'secondary',
     'Security': 'default',
     'Management': 'primary',
     'Development': 'secondary',
+    'Environments': 'primary',
+    'Documentation': 'secondary',
+    'Overview': 'default',
   };
   return colors[category as keyof typeof colors] || 'default';
 };
