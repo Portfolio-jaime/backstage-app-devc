@@ -74,6 +74,50 @@ const DEFAULT_DASHBOARD_PERMISSIONS: { [key: string]: DashboardPermissions } = {
     requiredGroups: ['ba-engineering', 'development-team'],
     adminUsers: ['jaime.henao@ba.com'],
   },
+  // Environment dashboards
+  'ba-prod1': {
+    visibility: 'team',
+    allowedRoles: ['devops', 'sre', 'platform-engineer', 'developer'],
+    allowedUsers: [],
+    requiredGroups: ['ba-engineering'],
+    adminUsers: ['jaime.henao@ba.com'],
+  },
+  'ba-sit1': {
+    visibility: 'public',
+    allowedRoles: ['developer', 'tester', 'qa', 'devops'],
+    allowedUsers: [],
+    requiredGroups: [],
+    adminUsers: ['jaime.henao@ba.com'],
+  },
+  'ba-dev1': {
+    visibility: 'public',
+    allowedRoles: ['developer', 'devops', 'platform-engineer'],
+    allowedUsers: [],
+    requiredGroups: [],
+    adminUsers: ['jaime.henao@ba.com'],
+  },
+  'ba-pcm': {
+    visibility: 'team',
+    allowedRoles: ['devops', 'sre', 'qa', 'tester'],
+    allowedUsers: [],
+    requiredGroups: ['ba-engineering'],
+    adminUsers: ['jaime.henao@ba.com'],
+  },
+  'ba-uat1': {
+    visibility: 'team',
+    allowedRoles: ['qa', 'tester', 'business-analyst', 'devops'],
+    allowedUsers: [],
+    requiredGroups: ['ba-engineering'],
+    adminUsers: ['jaime.henao@ba.com'],
+  },
+  // Documentation dashboard
+  'ba-techdocs': {
+    visibility: 'public',
+    allowedRoles: ['developer', 'technical-writer', 'devops', 'platform-engineer'],
+    allowedUsers: [],
+    requiredGroups: [],
+    adminUsers: ['jaime.henao@ba.com'],
+  },
 };
 
 export const useDashboardPermissions = () => {

@@ -321,7 +321,8 @@ export const HomePage = () => {
             </Grid>
           )}
           
-          <Grid item xs={12} md={3}>
+          {/* Quick Actions and Daily Tip - Aligned in same row */}
+          <Grid item xs={12} md={6}>
             <InfoCard title="Quick Actions">
               <Box p={2}>
                 {config?.content?.quickActions && config.content.quickActions.length > 0 ? (
@@ -332,13 +333,16 @@ export const HomePage = () => {
                     </Typography>
                   ))
                 ) : (
-                  // Fallback if no quickActions in YAML
+                  // Fallback quick actions
                   <>
                     <Typography variant="body2" gutterBottom>
                       📊 <a href="/catalog" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>Service Catalog</a>
                     </Typography>
                     <Typography variant="body2" gutterBottom>
                       📚 <a href="/docs" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>Documentation</a>
+                    </Typography>
+                    <Typography variant="body2" gutterBottom>
+                      🔍 <a href="/search" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>Global Search</a>
                     </Typography>
                     <Typography variant="body2">
                       ⚙️ <a href="/settings" style={{ textDecoration: 'none', color: config.spec.theme?.primaryColor || '#1976d2' }}>Settings</a>
@@ -348,8 +352,8 @@ export const HomePage = () => {
               </Box>
             </InfoCard>
           </Grid>
-          
-          <Grid item xs={12} md={3}>
+
+          <Grid item xs={12} md={6}>
             <DailyTipsWidget />
           </Grid>
 
