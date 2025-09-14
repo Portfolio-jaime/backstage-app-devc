@@ -21,6 +21,7 @@ import { LiveCatalogServices } from './widgets/LiveCatalogServices';
 import { TeamInfoWidget } from './widgets/TeamInfoWidget';
 import { RealMetricsWidget } from './widgets/RealMetricsWidget';
 import { DailyTipsWidget } from './widgets/DailyTipsWidget';
+import { TechDocsWidget } from './widgets/TechDocsWidget';
 import { HomePageMarkdown } from '@roadiehq/backstage-plugin-home-markdown';
 import { useDashboardConfig } from '../../hooks/useDashboardConfig';
 import { useUserPreferences } from '../../hooks/useUserPreferences';
@@ -337,7 +338,7 @@ export const HomePage = () => {
           {/* GitHub Activity and Service Catalog - Optimized for DevOps */}
           {spec.widgets.github?.enabled && (
             <Grid item xs={12} md={6}>
-              <TeamActivity key={`github-activity-${refreshKey}`} />
+              <TeamActivity key={`github-activity-${refreshKey}`} refreshKey={refreshKey} />
             </Grid>
           )}
 
@@ -354,7 +355,14 @@ export const HomePage = () => {
               <RealMetricsWidget key={`metrics-${refreshKey}`} />
             </Grid>
           )}
-          
+
+          {/* TechDocs Widget - Show on DevOps dashboard */}
+          {currentTemplate?.id === 'ba-devops' && spec.widgets.techdocs?.enabled && (
+            <Grid item xs={12} md={6}>
+              <TechDocsWidget key={`techdocs-${refreshKey}`} />
+            </Grid>
+          )}
+
           {/* Quick Actions and Daily Tip - Aligned in same row */}
           <Grid item xs={12} md={6}>
             <InfoCard title="Quick Actions">
