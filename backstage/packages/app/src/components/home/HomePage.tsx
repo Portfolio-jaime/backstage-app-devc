@@ -5,6 +5,7 @@ import WarningIcon from '@material-ui/icons/Warning';
 import ErrorIcon from '@material-ui/icons/Error';
 import HomeIcon from '@material-ui/icons/Home';
 import SettingsIcon from '@material-ui/icons/Settings';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import {
   HomePageCompanyLogo,
   HomePageStarredEntities,
@@ -47,15 +48,17 @@ BA Digital Operations Team
 
 export const HomePage = () => {
   const [preferencesOpen, setPreferencesOpen] = React.useState(false);
+  const [refreshKey, setRefreshKey] = React.useState(0);
   
   // Back to dynamic system from GitHub
-  const { 
-    config, 
-    loading, 
-    error, 
-    availableTemplates, 
-    currentTemplate, 
-    switchTemplate 
+  const {
+    config,
+    loading,
+    error,
+    availableTemplates,
+    currentTemplate,
+    switchTemplate,
+    refetch
   } = useDashboardConfig();
   
   // User preferences
@@ -125,10 +128,18 @@ export const HomePage = () => {
           <Button
             variant="outlined"
             size="small"
-            startIcon={<SettingsIcon />}
-            onClick={() => setPreferencesOpen(true)}
+            startIcon={<RefreshIcon />}
+            onClick={() => {
+              console.log('🔄 Refreshing dashboard and widgets...');
+              // Refresh dashboard config
+              refetch();
+              // Force refresh of all widgets by updating key
+              setRefreshKey(prev => prev + 1);
+            }}
+            disabled={loading}
+            title="Refresh dashboard configuration and all widgets"
           >
-            Preferences
+            {loading ? 'Refreshing...' : 'Refresh'}
           </Button>
           <HomePageCompanyLogo />
         </Box>
@@ -203,13 +214,14 @@ export const HomePage = () => {
           {/* Team Information Widget - Show when team info is available */}
           {spec.team && (
             <Grid item xs={12} md={spec.widgets.worldClock?.enabled && preferences.widgetVisibility.worldClock !== false ? 8 : 6}>
-              <TeamInfoWidget />
+              <TeamInfoWidget key={`team-info-${refreshKey}`} />
             </Grid>
           )}
 
           {spec.widgets.worldClock?.enabled && preferences.widgetVisibility.worldClock !== false && (
             <Grid item xs={12} md={4}>
               <WorldClock
+                key={`world-clock-${refreshKey}`}
                 title={spec.widgets.worldClock.title || "BA Global Operations Time"}
                 timezones={spec.widgets.worldClock.timezones}
               />
@@ -248,6 +260,28 @@ export const HomePage = () => {
                       </Typography>
                     </Box>
                   )}
+                </Box>
+              </InfoCard>
+            </Grid>
+          )}
+
+          {/* Preferences - Only show on main dashboard */}
+          {(currentTemplate?.id === 'ba-main' || currentTemplate?.id?.includes('main')) && (
+            <Grid item xs={12}>
+              <InfoCard title="⚙️ Dashboard Preferences & Settings">
+                <Box p={2}>
+                  <Button
+                    variant="contained"
+                    size="medium"
+                    startIcon={<SettingsIcon />}
+                    onClick={() => setPreferencesOpen(true)}
+                    style={{ marginBottom: 16 }}
+                  >
+                    Open Preferences
+                  </Button>
+                  <Typography variant="body2" color="textSecondary">
+                    Customize your dashboard experience, manage widget visibility, and configure personal preferences.
+                  </Typography>
                 </Box>
               </InfoCard>
             </Grid>
@@ -303,13 +337,13 @@ export const HomePage = () => {
           {/* GitHub Activity and Service Catalog - Optimized for DevOps */}
           {spec.widgets.github?.enabled && (
             <Grid item xs={12} md={6}>
-              <TeamActivity />
+              <TeamActivity key={`github-activity-${refreshKey}`} />
             </Grid>
           )}
 
           {spec.widgets.catalog?.enabled && (
             <Grid item xs={12} md={6}>
-              <LiveCatalogServices />
+              <LiveCatalogServices key={`catalog-services-${refreshKey}`} />
             </Grid>
           )}
 
@@ -317,7 +351,7 @@ export const HomePage = () => {
           {(currentTemplate?.id === 'ba-devops' || currentTemplate?.id === 'ba-developer') &&
            preferences.widgetVisibility.metrics !== false && (
             <Grid item xs={12} md={6}>
-              <RealMetricsWidget />
+              <RealMetricsWidget key={`metrics-${refreshKey}`} />
             </Grid>
           )}
           
@@ -354,7 +388,7 @@ export const HomePage = () => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <DailyTipsWidget />
+            <DailyTipsWidget key={`daily-tips-${refreshKey}`} />
           </Grid>
 
         </Grid>
