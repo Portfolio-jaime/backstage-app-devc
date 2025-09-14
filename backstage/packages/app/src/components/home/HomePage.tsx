@@ -153,17 +153,30 @@ export const HomePage = () => {
           </Grid>
           
           <Grid item xs={12} md={8}>
-            <InfoCard 
+            <InfoCard
               title={
-                <Box display="flex" alignItems="center" gap={2}>
-                  <span>Welcome to {metadata.title}</span>
+                <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <span>Welcome to {metadata.title}</span>
+                    {currentTemplate && currentTemplate.id !== 'ba-main' && (
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <span style={{ fontSize: '1.5rem' }}>{currentTemplate.icon}</span>
+                        <Typography variant="h6" component="span" color="primary">
+                          {currentTemplate.name}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
                   {currentTemplate && currentTemplate.id !== 'ba-main' && (
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <span style={{ fontSize: '1.5rem' }}>{currentTemplate.icon}</span>
-                      <Typography variant="h6" component="span" color="primary">
-                        {currentTemplate.name}
-                      </Typography>
-                    </Box>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color="primary"
+                      onClick={() => switchTemplate('ba-main')}
+                      style={{ minWidth: 'auto', whiteSpace: 'nowrap' }}
+                    >
+                      ← Back to Main Dashboard
+                    </Button>
                   )}
                 </Box>
               }
