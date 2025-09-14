@@ -17,6 +17,7 @@ import { SecurityAlerts } from './widgets/SecurityAlerts';
 import { SystemHealth } from './widgets/SystemHealth';
 import { WorldClock } from './widgets/WorldClock';
 import { LiveCatalogServices } from './widgets/LiveCatalogServices';
+import { TeamInfoWidget } from './widgets/TeamInfoWidget';
 import { RealMetricsWidget } from './widgets/RealMetricsWidget';
 import { DailyTipsWidget } from './widgets/DailyTipsWidget';
 import { HomePageMarkdown } from '@roadiehq/backstage-plugin-home-markdown';
@@ -188,10 +189,17 @@ export const HomePage = () => {
           
           {spec.widgets.worldClock?.enabled && preferences.widgetVisibility.worldClock !== false && (
             <Grid item xs={12} md={4}>
-              <WorldClock 
+              <WorldClock
                 title={spec.widgets.worldClock.title || "BA Global Operations Time"}
                 timezones={spec.widgets.worldClock.timezones}
               />
+            </Grid>
+          )}
+
+          {/* Team Information Widget - Show when team info is available */}
+          {spec.team && (
+            <Grid item xs={12} md={8}>
+              <TeamInfoWidget />
             </Grid>
           )}
 
