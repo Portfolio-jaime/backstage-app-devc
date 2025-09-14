@@ -200,19 +200,19 @@ export const HomePage = () => {
             </InfoCard>
           </Grid>
           
+          {/* Team Information Widget - Show when team info is available */}
+          {spec.team && (
+            <Grid item xs={12} md={spec.widgets.worldClock?.enabled && preferences.widgetVisibility.worldClock !== false ? 8 : 6}>
+              <TeamInfoWidget />
+            </Grid>
+          )}
+
           {spec.widgets.worldClock?.enabled && preferences.widgetVisibility.worldClock !== false && (
             <Grid item xs={12} md={4}>
               <WorldClock
                 title={spec.widgets.worldClock.title || "BA Global Operations Time"}
                 timezones={spec.widgets.worldClock.timezones}
               />
-            </Grid>
-          )}
-
-          {/* Team Information Widget - Show when team info is available */}
-          {spec.team && (
-            <Grid item xs={12} md={8}>
-              <TeamInfoWidget />
             </Grid>
           )}
 
@@ -246,39 +246,18 @@ export const HomePage = () => {
             </Grid>
           )}
 
-          {/* Dashboard Info and Selector Row - Show on specialized dashboards */}
+          {/* Dashboard Selector and Theme - Show on specialized dashboards */}
           {currentTemplate?.id !== 'ba-main' && (
             <>
-              <Grid item xs={12} md={6}>
-                <InfoCard title={`${currentTemplate?.icon || '📊'} ${currentTemplate?.name || 'Dashboard'}`}>
-                  <Box p={2}>
-                    <Typography variant="body1" color="textSecondary">
-                      Currently viewing: <strong>{currentTemplate?.category} Dashboard</strong>
-                    </Typography>
-                    <Box mt={1}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<HomeIcon />}
-                        onClick={() => switchTemplate('ba-main')}
-                        size="small"
-                      >
-                        Back to Main Dashboard
-                      </Button>
-                    </Box>
-                  </Box>
-                </InfoCard>
-              </Grid>
-              
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={8}>
                 <DashboardSelector
                   currentTemplate={currentTemplate}
                   availableTemplates={availableTemplates}
                   onTemplateChange={switchTemplate}
                 />
               </Grid>
-              
-              <Grid item xs={12} md={2}>
+
+              <Grid item xs={12} md={4}>
                 <ThemeSelector
                   currentDashboard={currentTemplate?.id}
                   compact={true}
@@ -314,24 +293,24 @@ export const HomePage = () => {
             </Grid>
           )}
           
+          {/* GitHub Activity and Service Catalog - Optimized for DevOps */}
           {spec.widgets.github?.enabled && (
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={6}>
               <TeamActivity />
             </Grid>
           )}
 
-          {/* Real Metrics Widget - Show on DevOps and Developer dashboards */}
-          {(currentTemplate?.id === 'ba-devops' || currentTemplate?.id === 'ba-developer') && 
-           preferences.widgetVisibility.metrics !== false && (
-            <Grid item xs={12} md={6}>
-              <RealMetricsWidget />
-            </Grid>
-          )}
-
-          {/* Utilities Row */}
           {spec.widgets.catalog?.enabled && (
             <Grid item xs={12} md={6}>
               <LiveCatalogServices />
+            </Grid>
+          )}
+
+          {/* Real Metrics Widget - Show on DevOps and Developer dashboards */}
+          {(currentTemplate?.id === 'ba-devops' || currentTemplate?.id === 'ba-developer') &&
+           preferences.widgetVisibility.metrics !== false && (
+            <Grid item xs={12} md={6}>
+              <RealMetricsWidget />
             </Grid>
           )}
           
