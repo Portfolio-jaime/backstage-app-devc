@@ -348,6 +348,13 @@ export const HomePage = () => {
             </Grid>
           )}
 
+          {/* TechDocs Widget - Place it here for visibility */}
+          {currentTemplate?.id === 'ba-devops' && (
+            <Grid item xs={12} md={6}>
+              <TechDocsWidget key={`techdocs-${refreshKey}`} />
+            </Grid>
+          )}
+
           {/* Real Metrics Widget - Show on DevOps and Developer dashboards */}
           {(currentTemplate?.id === 'ba-devops' || currentTemplate?.id === 'ba-developer') &&
            preferences.widgetVisibility.metrics !== false && (
@@ -356,27 +363,6 @@ export const HomePage = () => {
             </Grid>
           )}
 
-          {/* TechDocs Widget - Show on DevOps dashboard */}
-          {(() => {
-            const isDevOpsDashboard = currentTemplate?.id === 'ba-devops';
-            const techDocsEnabled = spec.widgets.techdocs?.enabled;
-            // Show TechDocs if it's DevOps dashboard (enabled by config or fallback)
-            const showTechDocs = isDevOpsDashboard && (techDocsEnabled !== false);
-
-            console.log('🔍 TechDocs Debug:', {
-              currentTemplateId: currentTemplate?.id,
-              isDevOpsDashboard,
-              techDocsEnabled,
-              showTechDocs,
-              specWidgets: Object.keys(spec.widgets || {})
-            });
-
-            return showTechDocs;
-          })() && (
-            <Grid item xs={12} md={6}>
-              <TechDocsWidget key={`techdocs-${refreshKey}`} />
-            </Grid>
-          )}
 
           {/* Quick Actions and Daily Tip - Aligned in same row */}
           <Grid item xs={12} md={6}>
