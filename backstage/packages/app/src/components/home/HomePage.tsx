@@ -357,7 +357,22 @@ export const HomePage = () => {
           )}
 
           {/* TechDocs Widget - Show on DevOps dashboard */}
-          {currentTemplate?.id === 'ba-devops' && spec.widgets.techdocs?.enabled && (
+          {(() => {
+            const isDevOpsDashboard = currentTemplate?.id === 'ba-devops';
+            const techDocsEnabled = spec.widgets.techdocs?.enabled;
+            // Show TechDocs if it's DevOps dashboard (enabled by config or fallback)
+            const showTechDocs = isDevOpsDashboard && (techDocsEnabled !== false);
+
+            console.log('🔍 TechDocs Debug:', {
+              currentTemplateId: currentTemplate?.id,
+              isDevOpsDashboard,
+              techDocsEnabled,
+              showTechDocs,
+              specWidgets: Object.keys(spec.widgets || {})
+            });
+
+            return showTechDocs;
+          })() && (
             <Grid item xs={12} md={6}>
               <TechDocsWidget key={`techdocs-${refreshKey}`} />
             </Grid>

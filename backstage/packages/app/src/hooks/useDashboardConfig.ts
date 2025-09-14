@@ -259,10 +259,25 @@ const parseYamlConfig = (yamlContent: string): DashboardConfig => {
     }
     
     // Check for other widgets
-    const widgetTypes = ['flightOps', 'costDashboard', 'security', 'systemHealth'];
+    const widgetTypes = ['flightOps', 'costDashboard', 'security', 'systemHealth', 'techdocs'];
     widgetTypes.forEach(widget => {
       if (isWidgetEnabled(widget)) {
         enabledWidgets[widget] = { enabled: true };
+
+        // Special handling for techdocs widget configuration
+        if (widget === 'techdocs') {
+          try {
+            const parsedConfig = yaml.load(yamlContent) as any;
+            const techDocsConfig = parsedConfig?.spec?.widgets?.techdocs || {};
+            enabledWidgets[widget] = {
+              ...enabledWidgets[widget],
+              ...techDocsConfig
+            };
+            console.log(`📚 TechDocs widget configuration loaded:`, techDocsConfig);
+          } catch (error) {
+            console.warn('Failed to parse techdocs configuration:', error);
+          }
+        }
       }
     });
     
