@@ -296,7 +296,8 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({
       // Auto-seleccionar tema por defecto para dashboard específico
       const dashboardSpecificThemes = availableThemes.filter(theme =>
         theme.forDashboards?.includes(activeDashboard) ||
-        (theme.category === 'dashboard-specific' && activeDashboard.includes('devops'))
+        (theme.category === 'dashboard-specific' &&
+         (activeDashboard.includes('devops') || activeDashboard === 'ba-devops'))
       );
 
       if (dashboardSpecificThemes.length > 0) {

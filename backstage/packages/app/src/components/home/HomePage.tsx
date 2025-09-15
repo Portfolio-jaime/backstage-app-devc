@@ -22,6 +22,10 @@ import { TeamInfoWidget } from './widgets/TeamInfoWidget';
 import { RealMetricsWidget } from './widgets/RealMetricsWidget';
 import { DailyTipsWidget } from './widgets/DailyTipsWidget';
 import { TechDocsWidget } from './widgets/TechDocsWidget';
+import { DeploymentPipelineStatus } from './widgets/DeploymentPipelineStatus';
+import { InfrastructureHealth } from './widgets/InfrastructureHealth';
+import { EnvironmentStatusBoard } from './widgets/EnvironmentStatusBoard';
+import { SoftwareTemplatesList } from './widgets/SoftwareTemplatesList';
 // import { HomePageMarkdown } from '@roadiehq/backstage-plugin-home-markdown';
 import { useDashboardConfig } from '../../hooks/useDashboardConfig';
 import { useUserPreferences } from '../../hooks/useUserPreferences';
@@ -237,11 +241,25 @@ export const HomePage = () => {
               />
             </Grid>
           )}
+
+          {/* Row 1: Deployment Pipeline Status (for DevOps) */}
+          {currentTemplate?.id === 'ba-devops' && spec.widgets.deploymentPipelines?.enabled && (
+            <Grid item xs={12} md={12}>
+              <DeploymentPipelineStatus key={`pipeline-status-${refreshKey}`} />
+            </Grid>
+          )}
           
-          {/* Team Information Widget - Show when team info is available */}
+          {/* Row 2: Team Information Widget - Show when team info is available */}
           {spec.team && (
-            <Grid item xs={12} md={spec.widgets.worldClock?.enabled && preferences.widgetVisibility.worldClock !== false ? 8 : 6}>
+            <Grid item xs={12} md={6}>
               <TeamInfoWidget key={`team-info-${refreshKey}`} />
+            </Grid>
+          )}
+
+          {/* Row 2: Infrastructure Health (for DevOps) */}
+          {currentTemplate?.id === 'ba-devops' && spec.widgets.infrastructureHealth?.enabled && (
+            <Grid item xs={12} md={6}>
+              <InfrastructureHealth key={`infrastructure-health-${refreshKey}`} />
             </Grid>
           )}
 
@@ -352,27 +370,41 @@ export const HomePage = () => {
             </Grid>
           )}
           
-          {/* GitHub Activity and Service Catalog - Optimized for DevOps */}
+          {/* Row 3: GitHub Activity and Service Catalog - Optimized for DevOps */}
           {spec.widgets.github?.enabled && (
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={4}>
               <TeamActivity key={`github-activity-${refreshKey}`} refreshKey={refreshKey} />
             </Grid>
           )}
 
           {spec.widgets.catalog?.enabled && (
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={4}>
               <LiveCatalogServices key={`catalog-services-${refreshKey}`} />
             </Grid>
           )}
 
-          {/* TechDocs Widget - Place it here for visibility */}
+          {/* Row 3: Software Templates List (for DevOps) */}
+          {currentTemplate?.id === 'ba-devops' && spec.widgets.softwareTemplates?.enabled && (
+            <Grid item xs={12} md={4}>
+              <SoftwareTemplatesList key={`software-templates-${refreshKey}`} />
+            </Grid>
+          )}
+
+          {/* Row 4: Environment Status Board (for DevOps) */}
+          {currentTemplate?.id === 'ba-devops' && spec.widgets.environmentStatus?.enabled && (
+            <Grid item xs={12} md={8}>
+              <EnvironmentStatusBoard key={`environment-status-${refreshKey}`} />
+            </Grid>
+          )}
+
+          {/* Row 4: TechDocs Widget - Place it here for visibility */}
           {currentTemplate?.id === 'ba-devops' && (
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={4}>
               <TechDocsWidget key={`techdocs-${refreshKey}`} />
             </Grid>
           )}
 
-          {/* Real Metrics Widget - Show on DevOps and Developer dashboards */}
+          {/* Row 5: Real Metrics Widget - Show on DevOps and Developer dashboards */}
           {(currentTemplate?.id === 'ba-devops' || currentTemplate?.id === 'ba-developer') &&
            preferences.widgetVisibility.metrics !== false && (
             <Grid item xs={12} md={6}>

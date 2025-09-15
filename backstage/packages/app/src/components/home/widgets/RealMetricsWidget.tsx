@@ -101,28 +101,53 @@ export const RealMetricsWidget = () => {
         };
 
         const owner = 'Portfolio-jaime';
-        const repo = 'backstage-dashboard-templates';
+        const repos = ['backstage-app-devc', 'backstage-dashboard-templates', 'GitOps'];
         
         console.log('📊 Fetching real GitHub metrics...');
 
-        // Fetch multiple endpoints in parallel
-        const [commitsRes, prsRes, issuesRes, contributorsRes] = await Promise.all([
-          fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=100`, { headers }),
-          fetch(`https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=50`, { headers }),
-          fetch(`https://api.github.com/repos/${owner}/${repo}/issues?state=all&per_page=50`, { headers }),
-          fetch(`https://api.github.com/repos/${owner}/${repo}/contributors?per_page=10`, { headers }),
-        ]);
+        // Fetch data from multiple repositories
+        let allCommits: any[] = [];
+        let allPullRequests: any[] = [];
+        let allIssues: any[] = [];
+        let allContributors: any[] = [];
 
-        if (!commitsRes.ok || !prsRes.ok || !issuesRes.ok || !contributorsRes.ok) {
-          throw new Error('Failed to fetch GitHub data');
+        for (const repo of repos) {
+          try {
+            console.log(`📊 Fetching data for ${owner}/${repo}...`);
+
+            const [commitsRes, prsRes, issuesRes, contributorsRes] = await Promise.all([
+              fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=50`, { headers }),
+              fetch(`https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=30`, { headers }),
+              fetch(`https://api.github.com/repos/${owner}/${repo}/issues?state=all&per_page=30`, { headers }),
+              fetch(`https://api.github.com/repos/${owner}/${repo}/contributors?per_page=10`, { headers }),
+            ]);
+
+            if (commitsRes.ok) {
+              const commits = await commitsRes.json();
+              allCommits.push(...commits);
+            }
+            if (prsRes.ok) {
+              const prs = await prsRes.json();
+              allPullRequests.push(...prs);
+            }
+            if (issuesRes.ok) {
+              const issues = await issuesRes.json();
+              allIssues.push(...issues);
+            }
+            if (contributorsRes.ok) {
+              const contributors = await contributorsRes.json();
+              allContributors.push(...contributors);
+            }
+          } catch (repoError) {
+            console.warn(`Failed to fetch data for ${repo}:`, repoError);
+          }
         }
 
-        const [commits, pullRequests, issues, contributors] = await Promise.all([
-          commitsRes.json(),
-          prsRes.json(),
-          issuesRes.json(),
-          contributorsRes.json(),
-        ]);
+        // Use aggregated data
+        const commits = allCommits;
+        const pullRequests = allPullRequests;
+        const issues = allIssues;
+        const contributors = allContributors;
 
         // Process commits data
         const lastMonthDate = new Date();

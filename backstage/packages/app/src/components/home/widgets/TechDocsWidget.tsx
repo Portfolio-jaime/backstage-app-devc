@@ -19,6 +19,9 @@ import DescriptionIcon from '@material-ui/icons/Description';
 import PersonIcon from '@material-ui/icons/Person';
 import UpdateIcon from '@material-ui/icons/Update';
 import { useDashboardConfig } from '../../../hooks/useDashboardConfig';
+import { useApi } from '@backstage/core-plugin-api';
+import { catalogApiRef } from '@backstage/plugin-catalog-react';
+import { Entity } from '@backstage/catalog-model';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -60,57 +63,27 @@ interface TechDoc {
   tags: string[];
 }
 
-// Mock data específica del equipo DevOps
-const MOCK_DEVOPS_TECHDOCS: TechDoc[] = [
+// Fallback documentation for when no real docs are found
+const getFallbackDocs = (): TechDoc[] => [
   {
-    id: 'kubernetes-runbook',
-    title: 'Kubernetes Operations Runbook',
-    description: 'Complete guide for Kubernetes cluster operations and troubleshooting',
-    category: 'runbooks',
-    owner: 'jaime.henao@ba.com',
-    lastUpdated: '2025-01-15T08:30:00Z',
-    url: '/docs/kubernetes-runbook',
-    tags: ['kubernetes', 'devops', 'infrastructure'],
+    id: 'backstage-docs',
+    title: 'Backstage Documentation',
+    description: 'Complete Backstage platform documentation',
+    category: 'platform-docs',
+    owner: 'platform-team',
+    lastUpdated: new Date().toISOString(),
+    url: '/docs',
+    tags: ['backstage', 'platform', 'documentation'],
   },
   {
-    id: 'ci-cd-pipeline-guide',
-    title: 'CI/CD Pipeline Configuration',
-    description: 'Setup and configuration guide for GitHub Actions pipelines',
-    category: 'ci-cd-guides',
-    owner: 'devops-team',
-    lastUpdated: '2025-01-14T16:45:00Z',
-    url: '/docs/ci-cd-pipeline-guide',
-    tags: ['ci-cd', 'github-actions', 'deployment'],
-  },
-  {
-    id: 'terraform-infrastructure',
-    title: 'Terraform Infrastructure as Code',
-    description: 'Infrastructure provisioning and management with Terraform',
-    category: 'infrastructure',
-    owner: 'devops1@ba.com',
-    lastUpdated: '2025-01-14T14:20:00Z',
-    url: '/docs/terraform-infrastructure',
-    tags: ['terraform', 'infrastructure', 'iac'],
-  },
-  {
-    id: 'monitoring-setup',
-    title: 'Monitoring & Alerting Setup',
-    description: 'Prometheus, Grafana, and alerting configuration',
-    category: 'monitoring',
-    owner: 'devops2@ba.com',
-    lastUpdated: '2025-01-13T11:15:00Z',
-    url: '/docs/monitoring-setup',
-    tags: ['monitoring', 'prometheus', 'grafana'],
-  },
-  {
-    id: 'deployment-strategies',
-    title: 'Deployment Strategies & Best Practices',
-    description: 'Blue-green, canary, and rolling deployment strategies',
-    category: 'deployment-guides',
-    owner: 'jaime.henao@ba.com',
-    lastUpdated: '2025-01-12T09:30:00Z',
-    url: '/docs/deployment-strategies',
-    tags: ['deployment', 'devops', 'strategies'],
+    id: 'catalog-docs',
+    title: 'Service Catalog Guide',
+    description: 'How to use and maintain the service catalog',
+    category: 'platform-docs',
+    owner: 'platform-team',
+    lastUpdated: new Date().toISOString(),
+    url: '/catalog',
+    tags: ['catalog', 'services', 'platform'],
   },
 ];
 
@@ -153,35 +126,106 @@ const getCategoryColor = (category: string): 'primary' | 'secondary' | 'default'
 
 export const TechDocsWidget: React.FC = () => {
   const classes = useStyles();
+  const catalogApi = useApi(catalogApiRef);
   const [docs, setDocs] = useState<TechDoc[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { config } = useDashboardConfig();
 
   console.log('📚 TechDocsWidget mounted and rendering!');
 
+  const convertEntityToTechDoc = (entity: Entity): TechDoc => {
+    const namespace = entity.metadata.namespace || 'default';
+    const kind = entity.kind.toLowerCase();
+    const name = entity.metadata.name;
+
+    return {
+      id: `${namespace}/${kind}/${name}`,
+      title: entity.metadata.title || entity.metadata.name,
+      description: entity.metadata.description || `Documentation for ${entity.metadata.name}`,
+      category: entity.metadata.tags?.find(tag =>
+        ['runbooks', 'infrastructure', 'deployment-guides', 'monitoring', 'ci-cd-guides'].includes(tag)
+      ) || 'platform-docs',
+      owner: entity.spec?.owner?.toString() || entity.metadata.annotations?.['backstage.io/owner'] || 'unknown',
+      lastUpdated: entity.metadata.annotations?.['backstage.io/updated'] || new Date().toISOString(),
+      url: `/docs/${namespace}/${kind}/${name}`,
+      tags: entity.metadata.tags || [],
+    };
+  };
+
   useEffect(() => {
     const fetchTechDocs = async () => {
-      setLoading(true);
-      console.log('📚 Fetching TechDocs...');
+      try {
+        setLoading(true);
+        setError(null);
+        console.log('📚 Fetching TechDocs from catalog...');
 
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+        // Fetch entities that have TechDocs
+        const response = await catalogApi.getEntities({
+          filter: {
+            'metadata.annotations.backstage.io/techdocs-ref': '*',
+          },
+        });
 
-      // Use filtered docs
-      const filteredDocs = MOCK_DEVOPS_TECHDOCS.slice(0, 5);
-      setDocs(filteredDocs);
-      setLoading(false);
+        let techDocsEntities = response.items;
 
-      console.log('📚 TechDocs loaded:', filteredDocs.length);
+        // Apply team filtering if configured
+        const techDocsConfig = config?.spec?.widgets?.techdocs;
+        if (techDocsConfig?.teamFilter) {
+          techDocsEntities = techDocsEntities.filter(entity => {
+            const owner = entity.spec?.owner?.toString() || '';
+            const tags = entity.metadata.tags || [];
+
+            return owner.includes(techDocsConfig.teamFilter) ||
+                   tags.includes(techDocsConfig.teamFilter);
+          });
+        }
+
+        // Apply additional filters from config
+        if (techDocsConfig?.filters?.tags) {
+          techDocsEntities = techDocsEntities.filter(entity => {
+            const entityTags = entity.metadata.tags || [];
+            return techDocsConfig.filters.tags.some(tag =>
+              entityTags.includes(tag)
+            );
+          });
+        }
+
+        // Convert entities to TechDoc format
+        const convertedDocs = techDocsEntities
+          .slice(0, techDocsConfig?.displayOptions?.maxDocs || 6)
+          .map(convertEntityToTechDoc);
+
+        if (convertedDocs.length > 0) {
+          setDocs(convertedDocs);
+          console.log(`📚 Loaded ${convertedDocs.length} real TechDocs`);
+        } else {
+          // Use fallback docs if no real docs found
+          console.log('📚 No TechDocs found, using fallback docs');
+          setDocs(getFallbackDocs());
+        }
+
+      } catch (err) {
+        console.error('Error fetching TechDocs:', err);
+        setError('Unable to load documentation');
+        // Use fallback docs on error
+        setDocs(getFallbackDocs());
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchTechDocs();
-  }, [config]);
+
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchTechDocs, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [config, catalogApi]);
 
   if (loading) {
     return (
       <Card className={classes.card}>
-        <CardHeader title="📚 DevOps Documentation" />
+        <CardHeader title="📚 Documentation" />
         <CardContent>
           <Box className={classes.loading}>
             <CircularProgress size={40} />
