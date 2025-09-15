@@ -209,6 +209,12 @@ catalog:
       rules:
         - allow: [Template]
 
+    # Your custom software templates - All templates from Portfolio-jaime repo
+    - type: url
+      target: https://github.com/Portfolio-jaime/backstage-software-templates/blob/main/templates/*/template.yaml
+      rules:
+        - allow: [Template]
+
 kubernetes:
   serviceLocatorMethod:
     type: 'multiTenant'

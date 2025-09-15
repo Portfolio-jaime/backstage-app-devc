@@ -10,7 +10,6 @@ import {
   Chip,
   CircularProgress,
   Box,
-  Alert,
   IconButton,
   Tooltip,
   LinearProgress
@@ -290,133 +289,134 @@ export const TeamActivity: React.FC<TeamActivityProps> = ({ refreshKey = 0 }) =>
     }
   }, [config, currentTemplate, refreshKey]);
 
+  // Función optimizada para fetch de GitHub activity
+  const fetchGitHubActivity = useCallback(async () => {
+    try {
+      setLoadingState(prev => ({ ...prev, isLoading: true, status: 'Fetching GitHub activity...', progress: 60 }));
+      setError(null);
+
+      console.log('📡 Fetching activity for repos:', baRepos);
+
+      const maxRepos = Math.min(baRepos.length, 6);
+      const promises = baRepos.slice(0, maxRepos).map(async (repo, index) => {
+        try {
+          setLoadingState(prev => ({
+            ...prev,
+            status: `Loading ${repo} (${index + 1}/${maxRepos})...`,
+            progress: 60 + (index / maxRepos) * 30
+          }));
+
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+          const response = await fetch(`https://api.github.com/repos/${repo}/events`, {
+            signal: controller.signal,
+            headers: {
+              'Accept': 'application/vnd.github.v3+json',
+              'X-GitHub-Api-Version': '2022-11-28',
+            },
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            if (response.status === 403) {
+              console.warn(`Rate limited for ${repo}`);
+              return [];
+            }
+            if (response.status === 404) {
+              console.warn(`Repository ${repo} not found or private`);
+              return [];
+            }
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const events: GitHubEvent[] = await response.json();
+          return events.slice(0, 5).map(getActivityFromEvent).filter(Boolean);
+
+        } catch (err: any) {
+          if (err.name === 'AbortError') {
+            console.warn(`Timeout fetching events for ${repo}`);
+          } else {
+            console.warn(`Error fetching ${repo} events:`, err.message);
+          }
+          return [];
+        }
+      });
+
+      const results = await Promise.allSettled(promises);
+      const allActivities = results
+        .filter((result): result is PromiseFulfilledResult<Activity[]> => result.status === 'fulfilled')
+        .flatMap(result => result.value) as Activity[];
+
+      // Ordenar por timestamp y tomar los primeros 8
+      const sortedActivities = allActivities
+        .sort((a, b) => {
+          const timeA = new Date(a.timestamp).getTime();
+          const timeB = new Date(b.timestamp).getTime();
+          return timeB - timeA;
+        })
+        .slice(0, 8);
+
+      setActivities(sortedActivities);
+      setLastRefresh(new Date());
+      setRetryCount(0);
+
+    } catch (err: any) {
+      console.error('Error fetching GitHub activity:', err);
+      const errorMessage = `Unable to load GitHub activity: ${err.message}`;
+      setError(errorMessage);
+
+      // Enhanced fallback data with more context
+      const now = new Date();
+      const mockActivities: Activity[] = [
+        {
+          user: 'jaime.henao',
+          action: 'pushed 3 commits',
+          repo: 'backstage-app-devc',
+          timestamp: formatTimeAgo(new Date(now.getTime() - 15 * 60 * 1000).toISOString()),
+          type: 'commit',
+          avatar: 'JH',
+          avatarUrl: 'https://github.com/jaime.henao.png',
+          details: '"feat: enhance dashboard widgets"',
+        },
+        {
+          user: 'devops-team',
+          action: 'merged PR #47',
+          repo: 'kubernetes-manifests',
+          timestamp: formatTimeAgo(new Date(now.getTime() - 45 * 60 * 1000).toISOString()),
+          type: 'merge',
+          avatar: 'DT',
+          details: '"Update production deployment config"',
+        },
+        {
+          user: 'jaime.henao',
+          action: 'created release v2.1.0',
+          repo: 'terraform-infrastructure',
+          timestamp: formatTimeAgo(new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString()),
+          type: 'release',
+          avatar: 'JH',
+          avatarUrl: 'https://github.com/jaime.henao.png',
+          details: 'Production Infrastructure Update',
+        },
+      ];
+
+      console.log('📊 Using enhanced mock DevOps team activity data');
+      setActivities(mockActivities);
+    } finally {
+      setLoadingState(prev => ({ ...prev, isLoading: false, progress: 100, status: 'Complete' }));
+    }
+  }, [baRepos, getActivityFromEvent]);
+
   useEffect(() => {
     if (!reposLoaded || baRepos.length === 0) return;
-
-    const fetchGitHubActivity = useCallback(async () => {
-      try {
-        setLoadingState(prev => ({ ...prev, isLoading: true, status: 'Fetching GitHub activity...', progress: 60 }));
-        setError(null);
-
-        console.log('📡 Fetching activity for repos:', baRepos);
-
-        const maxRepos = Math.min(baRepos.length, 6);
-        const promises = baRepos.slice(0, maxRepos).map(async (repo, index) => {
-          try {
-            setLoadingState(prev => ({
-              ...prev,
-              status: `Loading ${repo} (${index + 1}/${maxRepos})...`,
-              progress: 60 + (index / maxRepos) * 30
-            }));
-
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-            const response = await fetch(`https://api.github.com/repos/${repo}/events`, {
-              signal: controller.signal,
-              headers: {
-                'Accept': 'application/vnd.github.v3+json',
-                'X-GitHub-Api-Version': '2022-11-28',
-              },
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-              if (response.status === 403) {
-                console.warn(`Rate limited for ${repo}`);
-                return [];
-              }
-              if (response.status === 404) {
-                console.warn(`Repository ${repo} not found or private`);
-                return [];
-              }
-              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const events: GitHubEvent[] = await response.json();
-            return events.slice(0, 5).map(getActivityFromEvent).filter(Boolean);
-
-          } catch (err: any) {
-            if (err.name === 'AbortError') {
-              console.warn(`Timeout fetching events for ${repo}`);
-            } else {
-              console.warn(`Error fetching ${repo} events:`, err.message);
-            }
-            return [];
-          }
-        });
-
-        const results = await Promise.allSettled(promises);
-        const allActivities = results
-          .filter((result): result is PromiseFulfilledResult<Activity[]> => result.status === 'fulfilled')
-          .flatMap(result => result.value) as Activity[];
-
-        // Ordenar por timestamp y tomar los primeros 8
-        const sortedActivities = allActivities
-          .sort((a, b) => {
-            const timeA = new Date(a.timestamp).getTime();
-            const timeB = new Date(b.timestamp).getTime();
-            return timeB - timeA;
-          })
-          .slice(0, 8);
-
-        setActivities(sortedActivities);
-        setLastRefresh(new Date());
-        setRetryCount(0);
-
-      } catch (err: any) {
-        console.error('Error fetching GitHub activity:', err);
-        const errorMessage = `Unable to load GitHub activity: ${err.message}`;
-        setError(errorMessage);
-
-        // Enhanced fallback data with more context
-        const now = new Date();
-        const mockActivities: Activity[] = [
-          {
-            user: 'jaime.henao',
-            action: 'pushed 3 commits',
-            repo: 'backstage-app-devc',
-            timestamp: formatTimeAgo(new Date(now.getTime() - 15 * 60 * 1000).toISOString()),
-            type: 'commit',
-            avatar: 'JH',
-            avatarUrl: 'https://github.com/jaime.henao.png',
-            details: '"feat: enhance dashboard widgets"',
-          },
-          {
-            user: 'devops-team',
-            action: 'merged PR #47',
-            repo: 'kubernetes-manifests',
-            timestamp: formatTimeAgo(new Date(now.getTime() - 45 * 60 * 1000).toISOString()),
-            type: 'merge',
-            avatar: 'DT',
-            details: '"Update production deployment config"',
-          },
-          {
-            user: 'jaime.henao',
-            action: 'created release v2.1.0',
-            repo: 'terraform-infrastructure',
-            timestamp: formatTimeAgo(new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString()),
-            type: 'release',
-            avatar: 'JH',
-            avatarUrl: 'https://github.com/jaime.henao.png',
-            details: 'Production Infrastructure Update',
-          },
-        ];
-
-        console.log('📊 Using enhanced mock DevOps team activity data');
-        setActivities(mockActivities);
-      } finally {
-        setLoadingState(prev => ({ ...prev, isLoading: false, progress: 100, status: 'Complete' }));
-      }
-    }, [baRepos, getActivityFromEvent]);
 
     fetchGitHubActivity();
 
     // Actualizar cada 5 minutos
     const interval = setInterval(fetchGitHubActivity, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [reposLoaded, baRepos, refreshKey]);
+  }, [reposLoaded, baRepos, refreshKey, fetchGitHubActivity]);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -508,27 +508,36 @@ export const TeamActivity: React.FC<TeamActivityProps> = ({ refreshKey = 0 }) =>
         }
       >
         <Box className={classes.errorContainer}>
-          <Alert
-            severity="warning"
-            icon={<ErrorOutlineIcon />}
-            action={
-              <IconButton
-                color="inherit"
-                size="small"
-                onClick={handleManualRefresh}
-                className={classes.retryButton}
-              >
-                <RefreshIcon />
-              </IconButton>
-            }
+          <Box
+            style={{
+              backgroundColor: '#fff3e0',
+              border: '1px solid #ff9800',
+              borderRadius: 4,
+              padding: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
           >
-            <Typography variant="body2">
-              {error}
-            </Typography>
-            <Typography variant="caption" display="block" style={{ marginTop: 4 }}>
-              Retry attempt: {retryCount}/3 • Showing fallback data
-            </Typography>
-          </Alert>
+            <Box display="flex" alignItems="center">
+              <ErrorOutlineIcon style={{ color: '#ff9800', marginRight: 8 }} />
+              <Box>
+                <Typography variant="body2">
+                  {error}
+                </Typography>
+                <Typography variant="caption" display="block" style={{ marginTop: 4 }}>
+                  Retry attempt: {retryCount}/3 • Showing fallback data
+                </Typography>
+              </Box>
+            </Box>
+            <IconButton
+              size="small"
+              onClick={handleManualRefresh}
+              style={{ color: '#ff9800' }}
+            >
+              <RefreshIcon />
+            </IconButton>
+          </Box>
         </Box>
       </InfoCard>
     );
@@ -548,11 +557,22 @@ export const TeamActivity: React.FC<TeamActivityProps> = ({ refreshKey = 0 }) =>
     >
       {/* Error banner for partial failures */}
       {error && activities.length > 0 && (
-        <Alert severity="info" style={{ margin: '8px 16px' }}>
+        <Box
+          style={{
+            margin: '8px 16px',
+            backgroundColor: '#e3f2fd',
+            border: '1px solid #2196f3',
+            borderRadius: 4,
+            padding: 12,
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <ErrorOutlineIcon style={{ color: '#2196f3', marginRight: 8, fontSize: 18 }} />
           <Typography variant="caption">
             Some repositories failed to load. Showing available data.
           </Typography>
-        </Alert>
+        </Box>
       )}
 
       <List dense>

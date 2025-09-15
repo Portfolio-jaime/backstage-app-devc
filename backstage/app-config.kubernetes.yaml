@@ -148,9 +148,9 @@ catalog:
       rules:
         - allow: [System, Domain]
     
-    # Production templates
+    # Production templates - All templates from Portfolio-jaime repo
     - type: url
-      target: https://github.com/Portfolio-jaime/backstage-software-templates/blob/main/python-app/template.yaml
+      target: https://github.com/Portfolio-jaime/backstage-software-templates/blob/main/templates/*/template.yaml
       rules:
         - allow: [Template]
 
