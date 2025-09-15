@@ -50,7 +50,7 @@ BA Digital Operations Team
 export const HomePage = () => {
   const [preferencesOpen, setPreferencesOpen] = React.useState(false);
   const [refreshKey, setRefreshKey] = React.useState(0);
-  
+
   // Back to dynamic system from GitHub
   const {
     config,
@@ -61,6 +61,14 @@ export const HomePage = () => {
     switchTemplate,
     refetch
   } = useDashboardConfig();
+
+  // Pass current dashboard to theme context
+  React.useEffect(() => {
+    if (currentTemplate?.id) {
+      // Store current dashboard in session storage for theme provider
+      sessionStorage.setItem('current-dashboard', currentTemplate.id);
+    }
+  }, [currentTemplate?.id]);
   
   // User preferences
   const { preferences } = useUserPreferences();
@@ -206,8 +214,8 @@ export const HomePage = () => {
                   {config?.content?.welcomeMessage || getWelcomeContent(currentTemplate?.id).replace(/^#\s+.*$/gm, '').replace(/\*\*(.*?)\*\*/g, '$1').trim()}
                 </Typography>
                 {currentTemplate && currentTemplate.id !== 'ba-main' && (
-                  <Box mt={2} p={2} style={{ 
-                    backgroundColor: 'rgba(25, 118, 210, 0.08)', 
+                  <Box mt={2} p={2} style={{
+                    backgroundColor: 'rgba(25, 118, 210, 0.08)',
                     borderRadius: 4,
                     border: '1px solid rgba(25, 118, 210, 0.2)'
                   }}>
@@ -219,6 +227,16 @@ export const HomePage = () => {
               </Box>
             </InfoCard>
           </Grid>
+
+          {/* Theme Selector - Show on specialized dashboards, aligned with welcome message */}
+          {currentTemplate?.id !== 'ba-main' && (
+            <Grid item xs={12} md={4}>
+              <ThemeSelector
+                currentDashboard={currentTemplate?.id}
+                compact={true}
+              />
+            </Grid>
+          )}
           
           {/* Team Information Widget - Show when team info is available */}
           {spec.team && (
@@ -296,24 +314,15 @@ export const HomePage = () => {
             </Grid>
           )}
 
-          {/* Dashboard Selector and Theme - Show on specialized dashboards */}
+          {/* Dashboard Selector - Show on specialized dashboards */}
           {currentTemplate?.id !== 'ba-main' && (
-            <>
-              <Grid item xs={12} md={8}>
-                <DashboardSelector
-                  currentTemplate={currentTemplate}
-                  availableTemplates={availableTemplates}
-                  onTemplateChange={switchTemplate}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <ThemeSelector
-                  currentDashboard={currentTemplate?.id}
-                  compact={true}
-                />
-              </Grid>
-            </>
+            <Grid item xs={12}>
+              <DashboardSelector
+                currentTemplate={currentTemplate}
+                availableTemplates={availableTemplates}
+                onTemplateChange={switchTemplate}
+              />
+            </Grid>
           )}
 
           {/* Flight Operations Row */}

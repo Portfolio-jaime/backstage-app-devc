@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext, createContext, ReactNode } from
 import { createTheme, Theme } from '@material-ui/core/styles';
 import { PaletteType } from '@material-ui/core';
 import { themes, lightTheme, darkTheme } from '@backstage/theme';
+import { useDashboardConfig } from './useDashboardConfig';
 
 // Definición de tipos para temas personalizados
 export interface CustomThemeConfig {
@@ -231,39 +232,112 @@ interface DynamicThemeProviderProps {
   currentDashboard?: string;
 }
 
-export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({ 
-  children, 
-  currentDashboard 
+export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({
+  children,
+  currentDashboard
 }) => {
   const [currentThemeId, setCurrentThemeId] = useState<string>('ba-classic-light');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [availableThemes, setAvailableThemes] = useState<CustomThemeConfig[]>(SYSTEM_THEMES);
+  const [activeDashboard, setActiveDashboard] = useState<string>(currentDashboard || '');
+  const { config } = useDashboardConfig();
 
-  // Cargar tema guardado del localStorage
+  // Monitor dashboard changes from session storage
   useEffect(() => {
+    const checkDashboardChange = () => {
+      const dashboard = sessionStorage.getItem('current-dashboard');
+      if (dashboard && dashboard !== activeDashboard) {
+        setActiveDashboard(dashboard);
+        console.log('📊 Dashboard changed to:', dashboard);
+      }
+    };
+
+    checkDashboardChange();
+    const interval = setInterval(checkDashboardChange, 1000);
+    return () => clearInterval(interval);
+  }, [activeDashboard]);
+
+  // Cargar temas desde la configuración del dashboard
+  useEffect(() => {
+    if (config?.spec?.theme?.availableThemes) {
+      const configThemes: CustomThemeConfig[] = config.spec.theme.availableThemes.map(theme => ({
+        ...theme,
+        colors: {
+          primary: theme.colors.primary,
+          secondary: theme.colors.secondary,
+          background: theme.colors.background,
+          surface: theme.colors.surface,
+          text: theme.colors.text,
+          card: theme.colors.card,
+          border: theme.colors.border,
+          accent: theme.colors.accent,
+          success: theme.colors.success,
+          warning: theme.colors.warning,
+          error: theme.colors.error,
+        }
+      }));
+
+      // Combinar temas del sistema con temas de configuración
+      setAvailableThemes([...SYSTEM_THEMES, ...configThemes]);
+      console.log('🎨 Loaded themes from config:', configThemes.length);
+    }
+  }, [config]);
+
+  // Auto-seleccionar tema basado en dashboard actual
+  useEffect(() => {
+    if (activeDashboard) {
+      const savedTheme = localStorage.getItem(`backstage-theme-${activeDashboard}`);
+      if (savedTheme && availableThemes.find(t => t.id === savedTheme)) {
+        setCurrentThemeId(savedTheme);
+        console.log(`🎨 Loaded saved theme for ${activeDashboard}: ${savedTheme}`);
+        return;
+      }
+
+      // Auto-seleccionar tema por defecto para dashboard específico
+      const dashboardSpecificThemes = availableThemes.filter(theme =>
+        theme.forDashboards?.includes(activeDashboard) ||
+        (theme.category === 'dashboard-specific' && activeDashboard.includes('devops'))
+      );
+
+      if (dashboardSpecificThemes.length > 0) {
+        const defaultTheme = dashboardSpecificThemes[0];
+        setCurrentThemeId(defaultTheme.id);
+        setIsDarkMode(defaultTheme.type === 'dark');
+        console.log(`🎨 Auto-selected theme for ${activeDashboard}: ${defaultTheme.id}`);
+        return;
+      }
+    }
+
+    // Fallback: cargar tema guardado globalmente
     const savedTheme = localStorage.getItem('backstage-custom-theme');
     const savedDarkMode = localStorage.getItem('backstage-custom-dark-mode') === 'true';
-    
-    if (savedTheme && SYSTEM_THEMES.find(t => t.id === savedTheme)) {
+
+    if (savedTheme && availableThemes.find(t => t.id === savedTheme)) {
       setCurrentThemeId(savedTheme);
     }
     setIsDarkMode(savedDarkMode);
-  }, []);
+  }, [availableThemes, activeDashboard]);
 
   // Guardar preferencias en localStorage
   useEffect(() => {
+    // Guardar tema específico por dashboard
+    if (activeDashboard) {
+      localStorage.setItem(`backstage-theme-${activeDashboard}`, currentThemeId);
+    }
+    // Guardar tema global como fallback
     localStorage.setItem('backstage-custom-theme', currentThemeId);
     localStorage.setItem('backstage-custom-dark-mode', isDarkMode.toString());
-  }, [currentThemeId, isDarkMode]);
+  }, [currentThemeId, isDarkMode, activeDashboard]);
 
   // Obtener tema actual
-  const currentTheme = SYSTEM_THEMES.find(t => t.id === currentThemeId) || SYSTEM_THEMES[0];
+  const currentTheme = availableThemes.find(t => t.id === currentThemeId) || availableThemes[0];
 
   // Usar los temas base de Backstage sin modificaciones profundas
   const materialTheme = currentTheme.type === 'dark' ? darkTheme : lightTheme;
 
   // Función para cambiar tema
   const changeTheme = (themeId: string) => {
-    if (SYSTEM_THEMES.find(t => t.id === themeId)) {
+    if (availableThemes.find(t => t.id === themeId)) {
       setCurrentThemeId(themeId);
       console.log(`🎨 Theme changed to: ${themeId}`);
     }
@@ -271,10 +345,11 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({
 
   // Obtener temas disponibles para un dashboard específico
   const getThemesForDashboard = (dashboardId: string): CustomThemeConfig[] => {
-    return SYSTEM_THEMES.filter(theme => {
-      return theme.category === 'default' || 
+    return availableThemes.filter(theme => {
+      return theme.category === 'default' ||
              theme.category === 'seasonal' ||
-             theme.forDashboards?.includes(dashboardId);
+             theme.forDashboards?.includes(dashboardId) ||
+             theme.category === 'dashboard-specific';
     });
   };
 
@@ -285,15 +360,15 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({
     
     const currentThemeBase = currentThemeId.replace('-light', '').replace('-dark', '');
     const newThemeId = `${currentThemeBase}-${newDarkMode ? 'dark' : 'light'}`;
-    
-    if (SYSTEM_THEMES.find(t => t.id === newThemeId)) {
+
+    if (availableThemes.find(t => t.id === newThemeId)) {
       setCurrentThemeId(newThemeId);
     }
   };
 
   const value: ThemeContextType = {
     currentTheme,
-    availableThemes: SYSTEM_THEMES,
+    availableThemes,
     materialTheme,
     changeTheme,
     getThemesForDashboard,
