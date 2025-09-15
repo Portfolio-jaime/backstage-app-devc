@@ -3,12 +3,12 @@ import { Grid, Typography, Box, CircularProgress, Paper, Button } from '@materia
 import { Page, Header, Content, InfoCard } from '@backstage/core-components';
 import WarningIcon from '@material-ui/icons/Warning';
 import ErrorIcon from '@material-ui/icons/Error';
-import HomeIcon from '@material-ui/icons/Home';
+// import HomeIcon from '@material-ui/icons/Home';
 import SettingsIcon from '@material-ui/icons/Settings';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import {
   HomePageCompanyLogo,
-  HomePageStarredEntities,
+  // HomePageStarredEntities,
 } from '@backstage/plugin-home';
 import { HomePageSearchBar } from '@backstage/plugin-search';
 import { FlightOpsWidget } from './widgets/FlightOpsWidget';
@@ -22,7 +22,7 @@ import { TeamInfoWidget } from './widgets/TeamInfoWidget';
 import { RealMetricsWidget } from './widgets/RealMetricsWidget';
 import { DailyTipsWidget } from './widgets/DailyTipsWidget';
 import { TechDocsWidget } from './widgets/TechDocsWidget';
-import { HomePageMarkdown } from '@roadiehq/backstage-plugin-home-markdown';
+// import { HomePageMarkdown } from '@roadiehq/backstage-plugin-home-markdown';
 import { useDashboardConfig } from '../../hooks/useDashboardConfig';
 import { useUserPreferences } from '../../hooks/useUserPreferences';
 import { useDashboardPermissions } from '../../hooks/useDashboardPermissions';
@@ -75,12 +75,20 @@ export const HomePage = () => {
           <HomePageCompanyLogo />
         </Header>
         <Content>
-          <Box display="flex" justifyContent="center" alignItems="center" height={400}>
-            <CircularProgress size={60} />
-            <Box ml={2}>
-              <Typography variant="h6">Loading Dashboard Configuration</Typography>
+          <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" height={400}>
+            <CircularProgress size={60} style={{ marginBottom: 24 }} />
+            <Typography variant="h5" gutterBottom style={{ fontWeight: 'bold' }}>
+              Loading Dashboard Configuration
+            </Typography>
+            <Typography variant="body1" color="textSecondary" gutterBottom>
+              Fetching latest config from GitHub repository...
+            </Typography>
+            <Box mt={3} textAlign="center">
               <Typography variant="body2" color="textSecondary">
-                Fetching latest config from GitHub repository...
+                🔄 This may take a few seconds
+              </Typography>
+              <Typography variant="caption" color="textSecondary" style={{ marginTop: 8, display: 'block' }}>
+                Loading templates, permissions, and dashboard configuration
               </Typography>
             </Box>
           </Box>
