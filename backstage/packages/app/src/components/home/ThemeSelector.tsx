@@ -31,12 +31,13 @@ import { useDynamicTheme, CustomThemeConfig } from '../../hooks/useDynamicTheme'
 
 const useStyles = makeStyles((theme) => ({
   container: {
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor: 'var(--theme-card, ' + theme.palette.background.paper + ')',
     borderRadius: theme.shape.borderRadius,
-    border: `1px solid ${theme.palette.divider}`,
+    border: `1px solid var(--theme-border, ${theme.palette.divider})`,
     boxShadow: theme.shadows[2],
     padding: theme.spacing(2),
     height: 'fit-content',
+    transition: 'all 0.3s ease',
   },
   themeCard: {
     cursor: 'pointer',

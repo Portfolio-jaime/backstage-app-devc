@@ -26,6 +26,9 @@ import { DeploymentPipelineStatus } from './widgets/DeploymentPipelineStatus';
 import { InfrastructureHealth } from './widgets/InfrastructureHealth';
 import { EnvironmentStatusBoard } from './widgets/EnvironmentStatusBoard';
 import { SoftwareTemplatesList } from './widgets/SoftwareTemplatesList';
+import { RealTimeDeploymentStatus } from './widgets/RealTimeDeploymentStatus';
+import { InfrastructureCostTracking } from './widgets/InfrastructureCostTracking';
+import { AlertingIncidentManagement } from './widgets/AlertingIncidentManagement';
 // import { HomePageMarkdown } from '@roadiehq/backstage-plugin-home-markdown';
 import { useDashboardConfig } from '../../hooks/useDashboardConfig';
 import { useUserPreferences } from '../../hooks/useUserPreferences';
@@ -33,7 +36,6 @@ import { useDashboardPermissions } from '../../hooks/useDashboardPermissions';
 import { DashboardSelector } from './DashboardSelector';
 import { DashboardCards } from './DashboardCards';
 import { UserPreferences } from './UserPreferences';
-import { ThemeSelector } from './ThemeSelector';
 
 // Fallback welcome content if YAML doesn't have content
 const getWelcomeContent = (dashboardId?: string) => {
@@ -183,7 +185,7 @@ export const HomePage = () => {
           <Grid item xs={12}>
             <HomePageSearchBar />
           </Grid>
-          
+
           <Grid item xs={12} md={8}>
             <InfoCard
               title={
@@ -232,38 +234,9 @@ export const HomePage = () => {
             </InfoCard>
           </Grid>
 
-          {/* Theme Selector - Show on specialized dashboards, aligned with welcome message */}
-          {currentTemplate?.id !== 'ba-main' && (
-            <Grid item xs={12} md={4}>
-              <ThemeSelector
-                currentDashboard={currentTemplate?.id}
-                compact={true}
-              />
-            </Grid>
-          )}
-
-          {/* Row 1: Deployment Pipeline Status (for DevOps) */}
-          {currentTemplate?.id === 'ba-devops' && spec.widgets.deploymentPipelines?.enabled && (
-            <Grid item xs={12} md={12}>
-              <DeploymentPipelineStatus key={`pipeline-status-${refreshKey}`} />
-            </Grid>
-          )}
-          
-          {/* Row 2: Team Information Widget - Show when team info is available */}
-          {spec.team && (
-            <Grid item xs={12} md={6}>
-              <TeamInfoWidget key={`team-info-${refreshKey}`} />
-            </Grid>
-          )}
-
-          {/* Row 2: Infrastructure Health (for DevOps) */}
-          {currentTemplate?.id === 'ba-devops' && spec.widgets.infrastructureHealth?.enabled && (
-            <Grid item xs={12} md={6}>
-              <InfrastructureHealth key={`infrastructure-health-${refreshKey}`} />
-            </Grid>
-          )}
-
-          {spec.widgets.worldClock?.enabled && preferences.widgetVisibility.worldClock !== false && (
+          {/* World Clock for main dashboard - beside welcome message */}
+          {(currentTemplate?.id === 'ba-main' || currentTemplate?.id?.includes('main')) &&
+           spec.widgets.worldClock?.enabled && preferences.widgetVisibility.worldClock !== false && (
             <Grid item xs={12} md={4}>
               <WorldClock
                 key={`world-clock-${refreshKey}`}
@@ -273,10 +246,38 @@ export const HomePage = () => {
             </Grid>
           )}
 
-          {/* Dashboard Navigation Cards - Only show on main dashboard */}
+
+          {/* DevOps Dashboard Layout - Only Real Data */}
+          {currentTemplate?.id === 'ba-devops' && (
+            <>
+              {/* Row 1: Team Info */}
+              {spec.team && (
+                <Grid item xs={12}>
+                  <TeamInfoWidget key={`team-info-${refreshKey}`} />
+                </Grid>
+              )}
+
+              {/* Row 2: GitHub Activity and Service Catalog */}
+              {spec.widgets.github?.enabled && (
+                <Grid item xs={12} md={6}>
+                  <TeamActivity key={`github-activity-${refreshKey}`} refreshKey={refreshKey} />
+                </Grid>
+              )}
+
+              {spec.widgets.catalog?.enabled && (
+                <Grid item xs={12} md={6}>
+                  <LiveCatalogServices key={`catalog-services-${refreshKey}`} />
+                </Grid>
+              )}
+            </>
+          )}
+
+          {/* Main Dashboard Layout */}
           {(currentTemplate?.id === 'ba-main' || currentTemplate?.id?.includes('main')) && (
-            <Grid item xs={12}>
-              <InfoCard title="🎯 Navigate to Specialized Dashboards">
+            <>
+              {/* Dashboard Navigation Cards */}
+              <Grid item xs={12}>
+                <InfoCard title="🎯 Navigate to Specialized Dashboards">
                 <Box p={2}>
                   <DashboardCards
                     dashboards={(() => {
@@ -307,29 +308,28 @@ export const HomePage = () => {
                   )}
                 </Box>
               </InfoCard>
-            </Grid>
-          )}
+              </Grid>
 
-          {/* Preferences - Only show on main dashboard */}
-          {(currentTemplate?.id === 'ba-main' || currentTemplate?.id?.includes('main')) && (
-            <Grid item xs={12}>
-              <InfoCard title="⚙️ Dashboard Preferences & Settings">
-                <Box p={2}>
-                  <Button
-                    variant="contained"
-                    size="medium"
-                    startIcon={<SettingsIcon />}
-                    onClick={() => setPreferencesOpen(true)}
-                    style={{ marginBottom: 16 }}
-                  >
-                    Open Preferences
-                  </Button>
-                  <Typography variant="body2" color="textSecondary">
-                    Customize your dashboard experience, manage widget visibility, and configure personal preferences.
-                  </Typography>
-                </Box>
-              </InfoCard>
-            </Grid>
+              {/* Preferences */}
+              <Grid item xs={12}>
+                <InfoCard title="⚙️ Dashboard Preferences & Settings">
+                  <Box p={2}>
+                    <Button
+                      variant="contained"
+                      size="medium"
+                      startIcon={<SettingsIcon />}
+                      onClick={() => setPreferencesOpen(true)}
+                      style={{ marginBottom: 16 }}
+                    >
+                      Open Preferences
+                    </Button>
+                    <Typography variant="body2" color="textSecondary">
+                      Customize your dashboard experience, manage widget visibility, and configure personal preferences.
+                    </Typography>
+                  </Box>
+                </InfoCard>
+              </Grid>
+            </>
           )}
 
           {/* Dashboard Selector - Show on specialized dashboards */}
@@ -370,48 +370,51 @@ export const HomePage = () => {
             </Grid>
           )}
           
-          {/* Row 3: GitHub Activity and Service Catalog - Optimized for DevOps */}
-          {spec.widgets.github?.enabled && (
-            <Grid item xs={12} md={4}>
-              <TeamActivity key={`github-activity-${refreshKey}`} refreshKey={refreshKey} />
-            </Grid>
-          )}
-
-          {spec.widgets.catalog?.enabled && (
-            <Grid item xs={12} md={4}>
-              <LiveCatalogServices key={`catalog-services-${refreshKey}`} />
-            </Grid>
-          )}
-
-          {/* Row 3: Software Templates List (for DevOps) */}
-          {currentTemplate?.id === 'ba-devops' && spec.widgets.softwareTemplates?.enabled && (
-            <Grid item xs={12} md={4}>
-              <SoftwareTemplatesList key={`software-templates-${refreshKey}`} />
-            </Grid>
-          )}
-
-          {/* Row 4: Environment Status Board (for DevOps) */}
-          {currentTemplate?.id === 'ba-devops' && spec.widgets.environmentStatus?.enabled && (
-            <Grid item xs={12} md={8}>
-              <EnvironmentStatusBoard key={`environment-status-${refreshKey}`} />
-            </Grid>
-          )}
-
-          {/* Row 4: TechDocs Widget - Place it here for visibility */}
+          {/* Continue DevOps Dashboard Layout - Only Real Data */}
           {currentTemplate?.id === 'ba-devops' && (
-            <Grid item xs={12} md={4}>
-              <TechDocsWidget key={`techdocs-${refreshKey}`} />
-            </Grid>
+            <>
+              {/* Row 3: Software Templates and TechDocs */}
+              {spec.widgets.softwareTemplates?.enabled && (
+                <Grid item xs={12} md={6}>
+                  <SoftwareTemplatesList key={`software-templates-${refreshKey}`} />
+                </Grid>
+              )}
+
+              <Grid item xs={12} md={6}>
+                <TechDocsWidget key={`techdocs-${refreshKey}`} />
+              </Grid>
+
+              {/* Row 4: Real Metrics Widget */}
+              {preferences.widgetVisibility.metrics !== false && (
+                <Grid item xs={12}>
+                  <RealMetricsWidget key={`metrics-${refreshKey}`} />
+                </Grid>
+              )}
+            </>
           )}
 
-          {/* Row 5: Real Metrics Widget - Show on DevOps and Developer dashboards */}
-          {(currentTemplate?.id === 'ba-devops' || currentTemplate?.id === 'ba-developer') &&
-           preferences.widgetVisibility.metrics !== false && (
-            <Grid item xs={12} md={6}>
-              <RealMetricsWidget key={`metrics-${refreshKey}`} />
-            </Grid>
-          )}
+          {/* Platform Engineering Dashboard Layout - Only Real Data */}
+          {currentTemplate?.id === 'ba-platform' && (
+            <>
+              {/* Row 1: Platform Services Catalog */}
+              {spec.widgets.catalog?.enabled && (
+                <Grid item xs={12}>
+                  <LiveCatalogServices key={`platform-catalog-${refreshKey}`} />
+                </Grid>
+              )}
 
+              {/* Row 2: Platform GitHub Activity and TechDocs */}
+              {spec.widgets.github?.enabled && (
+                <Grid item xs={12} md={6}>
+                  <TeamActivity key={`platform-github-${refreshKey}`} refreshKey={refreshKey} />
+                </Grid>
+              )}
+
+              <Grid item xs={12} md={6}>
+                <TechDocsWidget key={`platform-techdocs-${refreshKey}`} />
+              </Grid>
+            </>
+          )}
 
           {/* Quick Actions and Daily Tip - Aligned in same row */}
           <Grid item xs={12} md={6}>

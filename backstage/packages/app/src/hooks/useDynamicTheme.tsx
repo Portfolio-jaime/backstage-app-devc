@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, createContext, ReactNode } from 'react';
-import { createTheme, Theme } from '@material-ui/core/styles';
+import { createTheme, Theme, ThemeProvider } from '@material-ui/core/styles';
+import { CssBaseline } from '@material-ui/core';
 import { PaletteType } from '@material-ui/core';
 import { themes, lightTheme, darkTheme } from '@backstage/theme';
 import { useDashboardConfig } from './useDashboardConfig';
@@ -333,8 +334,65 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({
   // Obtener tema actual
   const currentTheme = availableThemes.find(t => t.id === currentThemeId) || availableThemes[0];
 
-  // Usar los temas base de Backstage sin modificaciones profundas
-  const materialTheme = currentTheme.type === 'dark' ? darkTheme : lightTheme;
+  // Crear tema personalizado basado en los colores del tema actual
+  const materialTheme = createTheme({
+    ...(currentTheme.type === 'dark' ? darkTheme : lightTheme),
+    palette: {
+      ...(currentTheme.type === 'dark' ? darkTheme.palette : lightTheme.palette),
+      type: currentTheme.type as PaletteType,
+      primary: {
+        main: currentTheme.colors.primary,
+        contrastText: currentTheme.type === 'dark' ? '#ffffff' : '#000000',
+      },
+      secondary: {
+        main: currentTheme.colors.secondary,
+        contrastText: currentTheme.type === 'dark' ? '#ffffff' : '#000000',
+      },
+      background: {
+        default: currentTheme.colors.background,
+        paper: currentTheme.colors.card,
+      },
+      text: {
+        primary: currentTheme.colors.text,
+        secondary: currentTheme.type === 'dark' ?
+          'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+      },
+      divider: currentTheme.colors.border,
+      success: {
+        main: currentTheme.colors.success || '#4caf50',
+      },
+      warning: {
+        main: currentTheme.colors.warning || '#ff9800',
+      },
+      error: {
+        main: currentTheme.colors.error || '#f44336',
+      },
+    },
+    overrides: {
+      MuiCard: {
+        root: {
+          backgroundColor: currentTheme.colors.card,
+          borderColor: currentTheme.colors.border,
+        },
+      },
+      MuiPaper: {
+        root: {
+          backgroundColor: currentTheme.colors.surface,
+        },
+      },
+      MuiAppBar: {
+        root: {
+          backgroundColor: currentTheme.colors.primary,
+        },
+      },
+      MuiChip: {
+        root: {
+          backgroundColor: currentTheme.colors.surface,
+          borderColor: currentTheme.colors.border,
+        },
+      },
+    },
+  });
 
   // Función para cambiar tema
   const changeTheme = (themeId: string) => {
@@ -367,6 +425,24 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({
     }
   };
 
+  // Aplicar CSS variables globales para el tema
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--theme-primary', currentTheme.colors.primary);
+    root.style.setProperty('--theme-secondary', currentTheme.colors.secondary);
+    root.style.setProperty('--theme-background', currentTheme.colors.background);
+    root.style.setProperty('--theme-surface', currentTheme.colors.surface);
+    root.style.setProperty('--theme-text', currentTheme.colors.text);
+    root.style.setProperty('--theme-card', currentTheme.colors.card);
+    root.style.setProperty('--theme-border', currentTheme.colors.border);
+    root.style.setProperty('--theme-accent', currentTheme.colors.accent || currentTheme.colors.primary);
+    root.style.setProperty('--theme-success', currentTheme.colors.success || '#4caf50');
+    root.style.setProperty('--theme-warning', currentTheme.colors.warning || '#ff9800');
+    root.style.setProperty('--theme-error', currentTheme.colors.error || '#f44336');
+
+    console.log('🎨 CSS Variables updated for theme:', currentTheme.id);
+  }, [currentTheme]);
+
   const value: ThemeContextType = {
     currentTheme,
     availableThemes,
@@ -379,7 +455,10 @@ export const DynamicThemeProvider: React.FC<DynamicThemeProviderProps> = ({
 
   return (
     <ThemeContext.Provider value={value}>
-      {children}
+      <ThemeProvider theme={materialTheme}>
+        <CssBaseline />
+        {children}
+      </ThemeProvider>
     </ThemeContext.Provider>
   );
 };
