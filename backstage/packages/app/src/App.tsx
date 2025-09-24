@@ -2,13 +2,6 @@ import { Navigate, Route } from 'react-router-dom';
 
 import { githubAuthApiRef } from '@backstage/core-plugin-api';
 
-// Nuevos plugins instalados
-import { CostInsightsPage } from '@backstage/plugin-cost-insights';
-import { GitHubActionsPage } from './components/githubActions/GitHubActionsPage';
-import { TodosPage } from './components/todos/TodosPage';
-import { KubernetesPage } from './components/kubernetes/KubernetesPage';
-import { DatadogPage } from './components/datadog/DatadogPage';
-
 import { apiDocsPlugin, ApiExplorerPage } from '@backstage/plugin-api-docs';
 import {
   CatalogEntityPage,
@@ -46,7 +39,7 @@ import { AppRouter, FlatRoutes } from '@backstage/core-app-api';
 import { CatalogGraphPage } from '@backstage/plugin-catalog-graph';
 import { RequirePermission } from '@backstage/plugin-permission-react';
 import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common/alpha';
-// import DynamicThemeProvider from './hooks/useDynamicTheme';
+import DynamicThemeProvider from './hooks/useDynamicTheme';
 
 const app = createApp({
   apis,
@@ -118,13 +111,6 @@ const routes = (
     </Route>
     <Route path="/settings" element={<UserSettingsPage />} />
     <Route path="/catalog-graph" element={<CatalogGraphPage />} />
-
-    {/* Nuevas rutas de plugins */}
-    <Route path="/github-actions" element={<GitHubActionsPage />} />
-    <Route path="/cost-insights" element={<CostInsightsPage />} />
-    <Route path="/todos" element={<TodosPage />} />
-    <Route path="/kubernetes" element={<KubernetesPage />} />
-    <Route path="/datadog" element={<DatadogPage />} />
   </FlatRoutes>
 );
 
@@ -133,7 +119,9 @@ export default app.createRoot(
     <AlertDisplay />
     <OAuthRequestDialog />
     <AppRouter>
-      <Root>{routes}</Root>
+      <DynamicThemeProvider>
+        <Root>{routes}</Root>
+      </DynamicThemeProvider>
     </AppRouter>
   </>,
 );

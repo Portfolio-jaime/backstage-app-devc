@@ -259,30 +259,6 @@ dashboard:
     # Refresh configuration from repository every 5 minutes
     refreshInterval: 300000
 
-# Cost Insights plugin configuration
-costInsights:
-  engineerCost: 200000 # Annual engineer cost in USD
-  products:
-    computeEngine:
-      name: Compute Engine
-      icon: compute
-    cloudStorage:
-      name: Cloud Storage
-      icon: storage
-    cloudSQL:
-      name: Cloud SQL
-      icon: database
-    loadBalancer:
-      name: Load Balancer
-      icon: network
-  metrics:
-    - kind: DAU
-      name: Daily Active Users
-      default: false
-    - kind: cost
-      name: Cost
-      default: true
-
 # Proxy for GitHub raw content (to avoid CORS issues)
 proxy:
   endpoints:
