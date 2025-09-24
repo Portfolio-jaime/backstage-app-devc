@@ -5,6 +5,12 @@ import DashboardIcon from '@material-ui/icons/Dashboard';
 import ExtensionIcon from '@material-ui/icons/Extension';
 import LibraryBooks from '@material-ui/icons/LibraryBooks';
 import CreateComponentIcon from '@material-ui/icons/AddCircleOutline';
+// Iconos para plugins adicionales
+import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
+import CloudIcon from '@material-ui/icons/Cloud';
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import TimelineIcon from '@material-ui/icons/Timeline';
+import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import LogoFull from './LogoFull';
 import LogoIcon from './LogoIcon';
 import {
@@ -78,6 +84,15 @@ export const Root = ({ children }: PropsWithChildren<{}>) => (
         <SidebarItem icon={LibraryBooks} to="docs" text="Docs" />
         <SidebarItem icon={CreateComponentIcon} to="create" text="Create..." />
         {/* End global nav */}
+        <SidebarDivider />
+        {/* Plugin navigation */}
+        <SidebarGroup label="DevOps Tools">
+          <SidebarItem icon={MonetizationOnIcon} to="cost-insights" text="Cost Insights" />
+          <SidebarItem icon={PlayArrowIcon} to="github-actions" text="GitHub Actions" />
+          <SidebarItem icon={CheckBoxIcon} to="todos" text="TODOs" />
+          <SidebarItem icon={CloudIcon} to="kubernetes" text="Kubernetes" />
+          <SidebarItem icon={TimelineIcon} to="datadog" text="Datadog" />
+        </SidebarGroup>
         <SidebarDivider />
         <SidebarScrollWrapper>
           {/* Items in this group will be scrollable if they run out of space */}

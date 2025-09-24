@@ -53,4 +53,7 @@ backend.add(import('@backstage/plugin-search-backend-module-techdocs'));
 // kubernetes
 backend.add(import('@backstage/plugin-kubernetes-backend'));
 
+// Nuevos plugins backend
+backend.add(import('@backstage/plugin-todo-backend'));
+
 backend.start();

@@ -35,6 +35,11 @@ import {
 } from '@backstage/plugin-org';
 import { EntityTechdocsContent } from '@backstage/plugin-techdocs';
 import { EmptyState } from '@backstage/core-components';
+
+// Nuevos plugins para entity tabs
+import { EntityGithubActionsContent, isGithubActionsAvailable } from '@backstage/plugin-github-actions';
+import { EntityKubernetesContent } from '@backstage/plugin-kubernetes';
+import { EntityTodoContent } from '@backstage/plugin-todo';
 import {
   Direction,
   EntityCatalogGraphCard,
@@ -67,28 +72,23 @@ const techdocsContent = (
 );
 
 const cicdContent = (
-  // This is an example of how you can implement your company's logic in entity page.
-  // You can for example enforce that all components of type 'service' should use GitHubActions
+  // Contenido mejorado para mostrar GitHub Actions cuando esté disponible
   <EntitySwitch>
-    {/*
-      Here you can add support for different CI/CD services, for example
-      using @backstage-community/plugin-github-actions as follows:
-      <EntitySwitch.Case if={isGithubActionsAvailable}>
-        <EntityGithubActionsContent />
-      </EntitySwitch.Case>
-     */}
+    <EntitySwitch.Case if={isGithubActionsAvailable}>
+      <EntityGithubActionsContent />
+    </EntitySwitch.Case>
     <EntitySwitch.Case>
       <EmptyState
-        title="No CI/CD available for this entity"
+        title="No hay CI/CD configurado para esta entidad"
         missing="info"
-        description="You need to add an annotation to your component if you want to enable CI/CD for it. You can read more about annotations in Backstage by clicking the button below."
+        description="Necesitas agregar la anotación 'github.com/project-slug' a tu componente para habilitar GitHub Actions. También puedes leer más sobre anotaciones en Backstage."
         action={
           <Button
             variant="contained"
             color="primary"
             href="https://backstage.io/docs/features/software-catalog/well-known-annotations"
           >
-            Read more
+            Leer más sobre anotaciones
           </Button>
         }
       />
@@ -185,6 +185,14 @@ const serviceEntityPage = (
 
     <EntityLayout.Route path="/docs" title="Docs">
       {techdocsContent}
+    </EntityLayout.Route>
+
+    <EntityLayout.Route path="/github-actions" title="GitHub Actions">
+      <EntityGithubActionsContent />
+    </EntityLayout.Route>
+
+    <EntityLayout.Route path="/todos" title="TODOs">
+      <EntityTodoContent />
     </EntityLayout.Route>
   </EntityLayout>
 );
