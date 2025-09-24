@@ -1,0 +1,147 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: web-portal-frontend
+  title: Portal Web - Frontend
+  description: Aplicación frontend del portal web principal
+  annotations:
+    # GitHub Actions integration
+    github.com/project-slug: Portfolio-jaime/backstage-app-devc
+    github.com/workflows: build,test,deploy
+
+    # Kubernetes integration
+    backstage.io/kubernetes-id: web-portal-frontend
+    backstage.io/kubernetes-namespace: production
+    backstage.io/kubernetes-label-selector: 'app=web-portal,component=frontend'
+
+    # Links útiles
+    backstage.io/techdocs-ref: dir:.
+    github.com/team-slug: frontend-team
+
+  tags:
+    - frontend
+    - react
+    - typescript
+    - web
+  links:
+    - url: https://web-portal.ba-training.com
+      title: Aplicación en Producción
+      icon: web
+    - url: https://github.com/Portfolio-jaime/backstage-app-devc
+      title: Repositorio
+      icon: github
+    - url: https://monitoring.ba-training.com/d/web-portal
+      title: Dashboard de Monitoreo
+      icon: dashboard
+spec:
+  type: website
+  lifecycle: production
+  owner: frontend-team
+  system: web-platform
+  dependsOn:
+    - component:api-gateway
+    - resource:user-database
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: api-gateway
+  title: API Gateway
+  description: Gateway principal para todas las APIs del sistema
+  annotations:
+    # GitHub Actions integration
+    github.com/project-slug: Portfolio-jaime/backstage-software-templates
+    github.com/workflows: build,test,security-scan,deploy
+
+    # Kubernetes integration
+    backstage.io/kubernetes-id: api-gateway
+    backstage.io/kubernetes-namespace: production
+    backstage.io/kubernetes-label-selector: 'app=api-gateway'
+
+  tags:
+    - backend
+    - api
+    - gateway
+    - nodejs
+  links:
+    - url: https://api.ba-training.com/health
+      title: Health Check
+      icon: web
+    - url: https://api.ba-training.com/docs
+      title: API Documentation
+      icon: docs
+spec:
+  type: service
+  lifecycle: production
+  owner: backend-team
+  system: web-platform
+  providesApis:
+    - user-api
+    - payment-api
+  consumesApis:
+    - auth-service-api
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: web-platform
+  title: Web Platform System
+  description: Sistema completo de la plataforma web incluyendo frontend, backend y APIs
+  annotations:
+    github.com/team-slug: platform-team
+  tags:
+    - platform
+    - web
+    - microservices
+spec:
+  owner: platform-team
+  domain: ecommerce
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: user-api
+  title: User Management API
+  description: API para gestión de usuarios y perfiles
+  annotations:
+    github.com/project-slug: Portfolio-jaime/backstage-software-templates
+  tags:
+    - api
+    - users
+    - rest
+spec:
+  type: openapi
+  lifecycle: production
+  owner: backend-team
+  system: web-platform
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: User API
+      version: 1.0.0
+      description: API para gestión de usuarios
+    paths:
+      /users:
+        get:
+          summary: List users
+          responses:
+            '200':
+              description: Successful response
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: user-database
+  title: User Database
+  description: Base de datos principal de usuarios
+  annotations:
+    backstage.io/kubernetes-id: postgres-users
+    backstage.io/kubernetes-namespace: production
+  tags:
+    - database
+    - postgresql
+    - storage
+spec:
+  type: database
+  owner: backend-team
+  system: web-platform
