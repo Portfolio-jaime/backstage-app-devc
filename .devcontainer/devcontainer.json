@@ -65,16 +65,7 @@
 
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
-      "version": "latest",
-      "moby": true
-    }
-    // "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
-    //   "version": "latest",
-    //   "helm": "latest",
-    //   "minikube": "none"
-    // }
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
 
   "postCreateCommand": "echo 'Backstage DevContainer initialized successfully!' && echo 'Run .devcontainer/setup-course.sh to configure GitHub integration'",
