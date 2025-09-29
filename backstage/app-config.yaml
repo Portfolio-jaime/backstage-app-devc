@@ -221,28 +221,14 @@ kubernetes:
   clusterLocatorMethods:
     - type: 'config'
       clusters:
-        # Production cluster configuration
-        - url: ${K8S_CLUSTER_URL}
-          name: ${K8S_CLUSTER_NAME:-production}
-          authProvider: ${K8S_AUTH_PROVIDER:-serviceAccount} # or 'aws', 'oidc', 'google'
-          # Service Account Token (recommended for production)
-          serviceAccountToken: ${K8S_SERVICE_ACCOUNT_TOKEN}
-          # Alternative: OIDC configuration
-          # oidcTokenProvider: ${K8S_OIDC_TOKEN_PROVIDER}
-          # AWS EKS configuration
-          # awsAssumeRole: ${K8S_AWS_ASSUME_ROLE}
-          dashboardUrl: ${K8S_DASHBOARD_URL}
-          dashboardApp: ${K8S_DASHBOARD_APP:-kubernetes-dashboard}
-          # Skip TLS verification for internal clusters (not recommended for production)
-          skipTLSVerify: ${K8S_SKIP_TLS_VERIFY:-false}
-          # Custom CA certificate
-          caFile: ${K8S_CA_FILE}
-        # Development/Staging cluster (optional)
-        - url: ${K8S_DEV_CLUSTER_URL}
-          name: development
-          authProvider: serviceAccount
-          serviceAccountToken: ${K8S_DEV_SERVICE_ACCOUNT_TOKEN}
+        # Local Kind cluster configuration
+        - url: https://127.0.0.1:54446
+          name: kind-kind
+          authProvider: localKubectlProxy
           skipTLSVerify: true
+          skipMetricsLookup: false
+          dashboardUrl: http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+          dashboardApp: kubernetes-dashboard
 
 # see https://backstage.io/docs/permissions/getting-started for more on the permission framework
 permission:
@@ -259,29 +245,6 @@ dashboard:
     # Refresh configuration from repository every 5 minutes
     refreshInterval: 300000
 
-# Cost Insights plugin configuration
-costInsights:
-  engineerCost: 200000 # Annual engineer cost in USD
-  products:
-    computeEngine:
-      name: Compute Engine
-      icon: compute
-    cloudStorage:
-      name: Cloud Storage
-      icon: storage
-    cloudSQL:
-      name: Cloud SQL
-      icon: database
-    loadBalancer:
-      name: Load Balancer
-      icon: network
-  metrics:
-    - kind: DAU
-      name: Daily Active Users
-      default: false
-    - kind: cost
-      name: Cost
-      default: true
 
 # Proxy for GitHub raw content (to avoid CORS issues)
 proxy:
@@ -291,3 +254,14 @@ proxy:
       changeOrigin: true
       pathRewrite:
         '^/api/dashboard-config': ''
+
+    # Kubernetes API proxy for local development
+    '/api/k8s-proxy':
+      target: 'http://localhost:8001'
+      changeOrigin: true
+      pathRewrite:
+        '^/api/k8s-proxy': ''
+      headers:
+        Access-Control-Allow-Origin: '*'
+        Access-Control-Allow-Methods: 'GET, POST, PUT, DELETE, OPTIONS'
+        Access-Control-Allow-Headers: 'Content-Type, Authorization'

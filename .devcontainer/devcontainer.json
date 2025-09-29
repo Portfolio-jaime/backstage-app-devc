@@ -41,7 +41,7 @@
     }
   },
 
-  "forwardPorts": [3001, 7008, 5433, 8083, 8080],
+  "forwardPorts": [3001, 7008, 5433, 8083, 8080, 8001, 3010, 9090],
   "portsAttributes": {
     "3001": {
       "label": "Backstage Frontend",
@@ -59,6 +59,18 @@
     },
     "8080": {
       "label": "Argo CD Server",
+      "onAutoForward": "notify"
+    },
+    "8001": {
+      "label": "Internal Kubernetes API",
+      "onAutoForward": "notify"
+    },
+    "3010": {
+      "label": "Grafana",
+      "onAutoForward": "notify"
+    },
+    "9090": {
+      "label": "Prometheus",
       "onAutoForward": "notify"
     }
   },

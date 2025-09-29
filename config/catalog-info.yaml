@@ -1,0 +1,30 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: sample-application
+  description: A sample nginx application running in kind cluster
+  annotations:
+    # This annotation links this component to the Kubernetes resources
+    backstage.io/kubernetes-id: sample-application
+    backstage.io/kubernetes-namespace: sample-app
+    github.com/project-slug: Portfolio-jaime/sample-application
+  labels:
+    environment: development
+    owner: jaime-henao
+  tags:
+    - nginx
+    - kubernetes
+    - sample
+spec:
+  type: service
+  lifecycle: development
+  owner: jaime-henao
+  system: sample-system
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: sample-system
+  description: Sample system for testing Kubernetes integration
+spec:
+  owner: jaime-henao

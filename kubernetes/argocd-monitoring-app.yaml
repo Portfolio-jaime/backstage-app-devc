@@ -1,0 +1,122 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-stack
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: "*.*.x" # latest
+    helm:
+      values: |
+        grafana:
+          adminPassword: admin123
+          persistence:
+            enabled: true
+            size: 2Gi
+          service:
+            type: ClusterIP
+          ingress:
+            enabled: false # We manage ingress separately
+
+          # CORS configuration for Backstage integration
+          grafana.ini:
+            security:
+              allow_embedding: true
+              cookie_samesite: "none"
+              cookie_secure: false
+            server:
+              root_url: "http://localhost:3010/"
+              serve_from_sub_path: false
+            auth.anonymous:
+              enabled: false
+            auth.basic:
+              enabled: true
+            panels:
+              enable_alpha: true
+            feature_toggles:
+              enable: "publicDashboards"
+
+        prometheus:
+          prometheusSpec:
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  resources:
+                    requests:
+                      storage: 5Gi
+            retention: 15d
+
+        alertmanager:
+          alertmanagerSpec:
+            storage:
+              volumeClaimTemplate:
+                spec:
+                  resources:
+                    requests:
+                      storage: 1Gi
+
+        # Disable some exporters for kind cluster (if needed)
+        kubeControllerManager:
+          enabled: false
+        kubeScheduler:
+          enabled: false
+        kubeProxy:
+          enabled: false
+        kubeEtcd:
+          enabled: false
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-ingress
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Portfolio-jaime/backstage-app-devc # Replace with your repo
+    path: kubernetes
+    targetRevision: main
+    directory:
+      include: "ingress-monitoring.yaml"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

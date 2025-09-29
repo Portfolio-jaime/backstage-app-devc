@@ -3,11 +3,14 @@ import { Navigate, Route } from 'react-router-dom';
 import { githubAuthApiRef } from '@backstage/core-plugin-api';
 
 // Nuevos plugins instalados
-import { CostInsightsPage } from '@backstage/plugin-cost-insights';
 import { GitHubActionsPage } from './components/githubActions/GitHubActionsPage';
 import { TodosPage } from './components/todos/TodosPage';
 import { KubernetesPage } from './components/kubernetes/KubernetesPage';
+import KubernetesAdvancedPage from './components/kubernetes/KubernetesAdvancedPage';
+import { ArgoCDPage } from './components/argocd/ArgoCDPage';
 import { DatadogPage } from './components/datadog/DatadogPage';
+import { PrometheusPage } from './components/observability/PrometheusPage';
+import { GrafanaPage } from './components/observability/GrafanaPage';
 
 import { apiDocsPlugin, ApiExplorerPage } from '@backstage/plugin-api-docs';
 import {
@@ -121,10 +124,13 @@ const routes = (
 
     {/* Nuevas rutas de plugins */}
     <Route path="/github-actions" element={<GitHubActionsPage />} />
-    <Route path="/cost-insights" element={<CostInsightsPage />} />
     <Route path="/todos" element={<TodosPage />} />
     <Route path="/kubernetes" element={<KubernetesPage />} />
+    <Route path="/kubernetes-advanced" element={<KubernetesAdvancedPage />} />
+    <Route path="/argocd" element={<ArgoCDPage />} />
     <Route path="/datadog" element={<DatadogPage />} />
+    <Route path="/prometheus" element={<PrometheusPage />} />
+    <Route path="/grafana" element={<GrafanaPage />} />
   </FlatRoutes>
 );
 

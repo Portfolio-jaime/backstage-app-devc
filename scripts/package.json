@@ -1,0 +1,15 @@
+{
+  "name": "grafana-cors-proxy",
+  "version": "1.0.0",
+  "description": "Simple CORS proxy for Grafana API access from Backstage",
+  "main": "cors-proxy.js",
+  "scripts": {
+    "start": "node cors-proxy.js",
+    "proxy": "node cors-proxy.js"
+  },
+  "dependencies": {
+    "http-proxy": "^1.18.1"
+  },
+  "author": "Backstage Platform Team",
+  "license": "MIT"
+}

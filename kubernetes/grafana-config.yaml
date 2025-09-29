@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: kube-prometheus-stack
+data:
+  grafana.ini: |
+    [auth.anonymous]
+    enabled = false
+
+    [auth.basic]
+    enabled = true
+
+    [security]
+    allow_embedding = true
+    cookie_samesite = none
+    cookie_secure = false
+
+    [server]
+    root_url = http://localhost:3010/
+    serve_from_sub_path = false
+
+    # CORS configuration to allow Backstage access
+    [cors]
+    allow_origin = http://localhost:3001,http://localhost:3000,http://grafana.test.com,http://backstage.test.com
+    allow_credentials = true
+    allow_headers = Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With
+    allow_methods = GET,POST,OPTIONS,PUT,DELETE
+
+    [panels]
+    enable_alpha = true
+
+    [feature_toggles]
+    enable = publicDashboards
+
+    [dashboards]
+    default_home_dashboard_path = /var/lib/grafana/dashboards/general/kubernetes-cluster-overview.json
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-cors-patch
+  namespace: monitoring
+spec:
+  replicas: 0  # This is just to store the patch configuration
+  selector:
+    matchLabels:
+      app: grafana-cors-patch
+  template:
+    metadata:
+      labels:
+        app: grafana-cors-patch
+    spec:
+      containers:
+      - name: patch
+        image: busybox
+        command: ['sleep', '3600']
