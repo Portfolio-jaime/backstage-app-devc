@@ -24,6 +24,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    extra_hosts:
+      - "argocd.test.com:host-gateway"
+      - "grafana.test.com:host-gateway"
+      - "prometheus.test.com:host-gateway"
+      - "backstage.test.com:host-gateway"
+      - "backstage.kind.local:host-gateway"
     ports:
       - "3001:3001"
       - "7008:7008"
