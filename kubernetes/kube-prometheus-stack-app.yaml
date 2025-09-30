@@ -1,0 +1,241 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: "65.0.0"
+    helm:
+      values: |
+        # Global settings
+        fullnameOverride: "prometheus"
+
+        # Prometheus Operator
+        prometheusOperator:
+          enabled: true
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+
+        # Prometheus Server
+        prometheus:
+          enabled: true
+          prometheusSpec:
+            # Allow ServiceMonitors from any namespace
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+
+            # Retention and storage
+            retention: 7d
+            retentionSize: "4GB"
+
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 5Gi
+
+            # Resources
+            resources:
+              limits:
+                cpu: 500m
+                memory: 1Gi
+              requests:
+                cpu: 250m
+                memory: 512Mi
+
+            # Additional scrape configs for Backstage
+            additionalScrapeConfigs:
+              - job_name: 'backstage'
+                kubernetes_sd_configs:
+                  - role: pod
+                    namespaces:
+                      names:
+                        - backstage
+                relabel_configs:
+                  - source_labels: [__meta_kubernetes_pod_label_app]
+                    action: keep
+                    regex: backstage
+                  - source_labels: [__meta_kubernetes_pod_container_port_name]
+                    action: keep
+                    regex: metrics
+                  - source_labels: [__meta_kubernetes_namespace]
+                    target_label: namespace
+                  - source_labels: [__meta_kubernetes_pod_name]
+                    target_label: pod
+
+        # Grafana
+        grafana:
+          enabled: true
+          adminPassword: admin123
+
+          # Resources
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+
+          # Persistence
+          persistence:
+            enabled: true
+            size: 2Gi
+
+          # Grafana configuration
+          grafana.ini:
+            server:
+              root_url: "%(protocol)s://%(domain)s:%(http_port)s/"
+              serve_from_sub_path: false
+              domain: grafana.test.com
+
+            # Security for Backstage embedding
+            security:
+              allow_embedding: true
+              cookie_samesite: "lax"
+              cookie_secure: false
+
+            # Authentication
+            auth.anonymous:
+              enabled: false
+
+            auth.basic:
+              enabled: true
+
+            # Features
+            panels:
+              enable_alpha: true
+
+            feature_toggles:
+              enable: "publicDashboards"
+
+          # Disable default datasources (will be auto-configured by kube-prometheus-stack)
+          datasources: {}
+
+          # Default dashboards
+          dashboardProviders:
+            dashboardproviders.yaml:
+              apiVersion: 1
+              providers:
+                - name: 'default'
+                  orgId: 1
+                  folder: ''
+                  type: file
+                  disableDeletion: false
+                  editable: true
+                  options:
+                    path: /var/lib/grafana/dashboards/default
+                - name: 'backstage'
+                  orgId: 1
+                  folder: 'Backstage'
+                  type: file
+                  disableDeletion: false
+                  editable: true
+                  options:
+                    path: /var/lib/grafana/dashboards/backstage
+
+          # Import dashboards via ConfigMaps
+          dashboardsConfigMaps:
+            backstage: "backstage-grafana-dashboard"
+
+        # AlertManager
+        alertmanager:
+          enabled: true
+          alertmanagerSpec:
+            resources:
+              limits:
+                cpu: 100m
+                memory: 128Mi
+              requests:
+                cpu: 50m
+                memory: 64Mi
+            storage:
+              volumeClaimTemplate:
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 1Gi
+
+        # Node Exporter
+        nodeExporter:
+          enabled: true
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+
+        # Kube State Metrics
+        kube-state-metrics:
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+
+        # Default rules
+        defaultRules:
+          create: true
+          rules:
+            alertmanager: true
+            etcd: false
+            configReloaders: true
+            general: true
+            k8s: true
+            kubeApiserverAvailability: true
+            kubeApiserverSlos: true
+            kubelet: true
+            kubeProxy: false
+            kubePrometheusGeneral: true
+            kubePrometheusNodeRecording: true
+            kubernetesApps: true
+            kubernetesResources: true
+            kubernetesStorage: true
+            kubernetesSystem: true
+            kubeSchedulerAlerting: false
+            kubeSchedulerRecording: false
+            kubeStateMetrics: true
+            network: true
+            node: true
+            nodeExporterAlerting: true
+            nodeExporterRecording: true
+            prometheus: true
+            prometheusOperator: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

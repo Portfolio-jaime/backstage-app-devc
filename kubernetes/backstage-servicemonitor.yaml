@@ -1,0 +1,172 @@
+---
+# ServiceMonitor for Backstage metrics
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: backstage
+  namespace: backstage
+  labels:
+    app: backstage
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: backstage
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      scheme: http
+
+---
+# PrometheusRule for Backstage alerts
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: backstage-alerts
+  namespace: backstage
+  labels:
+    app: backstage
+    release: prometheus
+spec:
+  groups:
+    - name: backstage.rules
+      interval: 30s
+      rules:
+        # High error rate alert
+        - alert: BackstageHighErrorRate
+          expr: |
+            (
+              rate(http_requests_total{namespace="backstage", code=~"5.."}[5m]) /
+              rate(http_requests_total{namespace="backstage"}[5m])
+            ) * 100 > 5
+          for: 5m
+          labels:
+            severity: warning
+            service: backstage
+            team: platform
+          annotations:
+            summary: "Backstage has high error rate"
+            description: "Backstage error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+            dashboard: "https://grafana.test.com/d/backstage/backstage-overview"
+
+        # High response time alert
+        - alert: BackstageHighResponseTime
+          expr: |
+            histogram_quantile(0.95,
+              rate(http_request_duration_seconds_bucket{namespace="backstage"}[5m])
+            ) * 1000 > 1000
+          for: 5m
+          labels:
+            severity: warning
+            service: backstage
+            team: platform
+          annotations:
+            summary: "Backstage has high response time"
+            description: "Backstage 95th percentile response time is {{ $value | humanize }}ms"
+            dashboard: "https://grafana.test.com/d/backstage/backstage-overview"
+
+        # Pod down alert
+        - alert: BackstagePodDown
+          expr: |
+            up{namespace="backstage", pod=~"backstage-.*"} == 0
+          for: 2m
+          labels:
+            severity: critical
+            service: backstage
+            team: platform
+          annotations:
+            summary: "Backstage pod is down"
+            description: "Pod {{ $labels.pod }} has been down for more than 2 minutes"
+            dashboard: "https://grafana.test.com/d/backstage/backstage-overview"
+
+        # Pod restart alert
+        - alert: BackstagePodRestarts
+          expr: |
+            rate(kube_pod_container_status_restarts_total{
+              namespace="backstage",
+              pod=~"backstage-.*"
+            }[15m]) > 0
+          for: 5m
+          labels:
+            severity: warning
+            service: backstage
+            team: platform
+          annotations:
+            summary: "Backstage pod is restarting"
+            description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last 15 minutes"
+            dashboard: "https://grafana.test.com/d/backstage/backstage-overview"
+
+        # High memory usage alert
+        - alert: BackstageHighMemoryUsage
+          expr: |
+            (
+              container_memory_working_set_bytes{
+                namespace="backstage",
+                pod=~"backstage-.*",
+                container="backstage"
+              } /
+              container_spec_memory_limit_bytes{
+                namespace="backstage",
+                pod=~"backstage-.*",
+                container="backstage"
+              }
+            ) * 100 > 85
+          for: 10m
+          labels:
+            severity: warning
+            service: backstage
+            team: platform
+          annotations:
+            summary: "Backstage high memory usage"
+            description: "Backstage pod {{ $labels.pod }} memory usage is {{ $value | humanize }}%"
+            dashboard: "https://grafana.test.com/d/backstage/backstage-overview"
+
+        # High CPU usage alert
+        - alert: BackstageHighCPUUsage
+          expr: |
+            (
+              rate(container_cpu_usage_seconds_total{
+                namespace="backstage",
+                pod=~"backstage-.*",
+                container="backstage"
+              }[5m])
+            ) * 100 > 80
+          for: 10m
+          labels:
+            severity: warning
+            service: backstage
+            team: platform
+          annotations:
+            summary: "Backstage high CPU usage"
+            description: "Backstage pod {{ $labels.pod }} CPU usage is {{ $value | humanize }}%"
+            dashboard: "https://grafana.test.com/d/backstage/backstage-overview"
+
+        # Database connection alert
+        - alert: BackstageDatabaseConnectionIssue
+          expr: |
+            rate(database_errors_total{namespace="backstage"}[5m]) > 0
+          for: 2m
+          labels:
+            severity: critical
+            service: backstage
+            team: platform
+          annotations:
+            summary: "Backstage database connection issues"
+            description: "Backstage is experiencing database connection errors"
+            dashboard: "https://grafana.test.com/d/backstage/backstage-overview"
+
+        # Low request rate (potential downtime)
+        - alert: BackstageLowRequestRate
+          expr: |
+            rate(http_requests_total{namespace="backstage"}[5m]) < 0.1
+          for: 5m
+          labels:
+            severity: warning
+            service: backstage
+            team: platform
+          annotations:
+            summary: "Backstage low request rate"
+            description: "Backstage is receiving unusually low traffic ({{ $value }} req/s)"
+            dashboard: "https://grafana.test.com/d/backstage/backstage-overview"
